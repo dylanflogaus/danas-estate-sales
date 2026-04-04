@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact — Dana's Estate Sales</title>
+  <meta name="description" content="Contact Dana's Estate Sales for estate appraisals, sale inquiries, item purchases, or to join our mailing list." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      Dana's Estate Sales
+      <span>Est. 1987 &bull; Wilmington, DE</span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="store.html">Store</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="contact.html" class="active">Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-hero">
+    <p class="eyebrow">We'd Love to Hear From You</p>
+    <h1>Get in <em>Touch</em></h1>
+    <div class="ornament" style="position:relative;"><span>✦</span></div>
+    <p>Whether you're ready to sell an estate, searching for a specific piece, or simply wish to be added to our mailing list — we welcome your enquiry.</p>
+  </div>
+
+  <section style="background:var(--ink);padding:5rem 2rem;">
+    <div class="container">
+      <div class="contact-wrap">
+
+        <div class="contact-info">
+          <h2>Dana's <em style="font-style:italic;color:var(--gold-lt);">Estate Sales</em></h2>
+          <div class="ornament" style="justify-content:flex-start;"><span>✦</span></div>
+          <p>For over three decades we have served families across the Delaware Valley with discretion, expertise, and genuine care for the objects and histories entrusted to us. We are always happy to discuss your needs — no collection is too large or too small.</p>
+
+          <div class="contact-detail">
+            <div class="contact-detail-item">
+              <div class="label">Phone</div>
+              <div class="value"><a href="tel:+13025550192">(302) 555-0192</a></div>
+            </div>
+            <div class="contact-detail-item">
+              <div class="label">Email</div>
+              <div class="value"><a href="mailto:info@danasestatesales.com">info@danasestatesales.com</a></div>
+            </div>
+            <div class="contact-detail-item">
+              <div class="label">Location</div>
+              <div class="value">Wilmington, Delaware 19801<br><span style="font-size:.85rem;color:var(--warm-gray);">By appointment only</span></div>
+            </div>
+            <div class="contact-detail-item">
+              <div class="label">Hours</div>
+              <div class="value">Mon–Fri: 9am – 5pm<br><span style="font-size:.85rem;color:var(--warm-gray);">Sales held on select weekends</span></div>
+            </div>
+          </div>
+
+          <div style="margin-top:2.5rem;padding:1.75rem;border:1px solid rgba(201,151,58,.25);background:var(--deep);">
+            <p class="section-label" style="text-align:left;margin-bottom:.5rem;">Selling Your Estate?</p>
+            <p style="font-size:.95rem;color:var(--parchment);line-height:1.8;">We offer complimentary in-home consultations for estate liquidation. Our fee is a percentage of the sale — no upfront costs. We handle everything from sorting and pricing to conducting the sale and coordinating removal.</p>
+          </div>
+        </div>
+
+        <div class="contact-form-wrap">
+          <h3 class="form-title">Send an Enquiry</h3>
+          <form name="contact" method="POST" data-netlify="true">
+            <input type="hidden" name="form-name" value="contact" />
+            <div class="form-row">
+              <div class="form-group">
+                <label for="first-name">First Name</label>
+                <input type="text" id="first-name" name="first_name" placeholder="Margaret" required />
+              </div>
+              <div class="form-group">
+                <label for="last-name">Last Name</label>
+                <input type="text" id="last-name" name="last_name" placeholder="Ashworth" required />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" id="email" name="email" placeholder="your@email.com" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone (Optional)</label>
+              <input type="tel" id="phone" name="phone" placeholder="(302) 555-0100" />
+            </div>
+            <div class="form-group">
+              <label for="subject">Nature of Enquiry</label>
+              <select id="subject" name="subject">
+                <option value="">Please select…</option>
+                <option value="estate-consultation">Estate Liquidation Consultation</option>
+                <option value="item-inquiry">Inquiry About a Specific Item</option>
+                <option value="appraisal">Appraisal Services</option>
+                <option value="mailing-list">Join the Mailing List</option>
+                <option value="event-info">Event Information</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" name="message" placeholder="Please tell us a little about your enquiry…" required></textarea>
+            </div>
+            <div class="form-submit">
+              <button type="submit" class="btn btn-solid">Send Enquiry</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Services strip -->
+      <div style="margin-top:5rem;">
+        <div class="ornament"><span>✦</span></div>
+        <p class="section-label">Our Services</p>
+        <h2 class="section-title" style="margin-bottom:2.5rem;">How We Can <em>Help</em></h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.5rem;">
+          <div style="padding:1.75rem;border:1px solid rgba(201,151,58,.2);background:var(--deep);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:1rem;">🏠</div>
+            <h4 style="font-family:var(--font-display);font-size:1.1rem;color:var(--cream);margin-bottom:.5rem;font-weight:400;">Estate Liquidations</h4>
+            <p style="font-size:.85rem;color:var(--warm-gray);line-height:1.8;">Full-service in-home sale management from start to finish.</p>
+          </div>
+          <div style="padding:1.75rem;border:1px solid rgba(201,151,58,.2);background:var(--deep);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:1rem;">🔍</div>
+            <h4 style="font-family:var(--font-display);font-size:1.1rem;color:var(--cream);margin-bottom:.5rem;font-weight:400;">Appraisals</h4>
+            <p style="font-size:.85rem;color:var(--warm-gray);line-height:1.8;">Written appraisals for insurance, donation, or estate purposes.</p>
+          </div>
+          <div style="padding:1.75rem;border:1px solid rgba(201,151,58,.2);background:var(--deep);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:1rem;">🛒</div>
+            <h4 style="font-family:var(--font-display);font-size:1.1rem;color:var(--cream);margin-bottom:.5rem;font-weight:400;">Buyouts</h4>
+            <p style="font-size:.85rem;color:var(--warm-gray);line-height:1.8;">Direct purchase of entire estates or individual collections.</p>
+          </div>
+          <div style="padding:1.75rem;border:1px solid rgba(201,151,58,.2);background:var(--deep);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:1rem;">📦</div>
+            <h4 style="font-family:var(--font-display);font-size:1.1rem;color:var(--cream);margin-bottom:.5rem;font-weight:400;">Shipping & Pickup</h4>
+            <p style="font-size:.85rem;color:var(--warm-gray);line-height:1.8;">Local pickup in Wilmington or coordinated shipping anywhere.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">Dana's Estate Sales <span>Est. 1987 &bull; Wilmington, DE</span></div>
+      <p>Specialising in fine antiques, art, jewellery, and the complete dispersal of distinguished private estates throughout the Delaware Valley and beyond.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="store.html">Online Store</a></li>
+        <li><a href="events.html">Upcoming Events</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="mailto:info@danasestatesales.com">info@danasestatesales.com</a></li>
+        <li><a href="tel:+13025550192">(302) 555-0192</a></li>
+        <li><a href="contact.html">Wilmington, DE 19801</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Dana's Estate Sales. All rights reserved.</span>
+    <span>Wilmington, Delaware</span>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
