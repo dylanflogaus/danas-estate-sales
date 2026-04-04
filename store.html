@@ -23,6 +23,7 @@
       <li><a href="store.html" class="active">Store</a></li>
       <li><a href="events.html">Events</a></li>
       <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart (<span data-cart-count>0</span>)</a></li>
     </ul>
   </div>
 </nav>
@@ -47,9 +48,14 @@
         <button class="filter-btn" data-cat="books">Books & Ephemera</button>
       </div>
 
+      <div class="store-actions">
+        <a href="cart.html" class="btn">View Cart (<span data-cart-count>0</span>)</a>
+        <p class="store-message" data-cart-message aria-live="polite"></p>
+      </div>
+
       <div class="items-grid">
 
-        <div class="item-card" data-cat="furniture">
+        <div class="item-card" data-cat="furniture" data-id="art-deco-walnut-armchair" data-price-cents="145000">
           <div class="item-img">🪑
             <span class="item-badge">Featured</span>
           </div>
@@ -58,10 +64,11 @@
             <h3>Art Deco Walnut Armchair</h3>
             <p>Circa 1925. Original upholstery with geometric sunburst motif. Minor wear consistent with age. Excellent structural condition.</p>
             <div class="item-price">$1,450</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="art">
+        <div class="item-card" data-cat="art" data-id="hudson-river-valley-oil" data-price-cents="320000">
           <div class="item-img">🖼
             <span class="item-badge">New</span>
           </div>
@@ -70,20 +77,22 @@
             <h3>Hudson River Valley Oil, c.1890</h3>
             <p>Unsigned. Oil on canvas, 18×24". Autumn pastoral with river and foliage. Original gilded frame. Minor craquelure.</p>
             <div class="item-price">$3,200</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="jewellery">
+        <div class="item-card" data-cat="jewellery" data-id="victorian-garnet-brooch-set" data-price-cents="87500">
           <div class="item-img">💍</div>
           <div class="item-body">
             <div class="item-category">Jewellery</div>
             <h3>Victorian Garnet Brooch Set</h3>
             <p>Three-piece parure: brooch, earrings, pendant. Rose-cut Bohemian garnets in gilded brass settings. Circa 1870–1890.</p>
             <div class="item-price">$875</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="objects">
+        <div class="item-card" data-cat="objects" data-id="french-mantel-clock-ormolu" data-price-cents="210000">
           <div class="item-img">🕰
             <span class="item-badge">Rare</span>
           </div>
@@ -92,20 +101,22 @@
             <h3>French Mantel Clock, Ormolu</h3>
             <p>Gilt bronze case with porcelain panels. Eight-day movement by Japy Frères, Paris. Circa 1860. Running order.</p>
             <div class="item-price">$2,100</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="furniture">
+        <div class="item-card" data-cat="furniture" data-id="gilded-pier-mirror" data-price-cents="280000">
           <div class="item-img">🪞</div>
           <div class="item-body">
             <div class="item-category">Furniture</div>
             <h3>Gilded Pier Mirror, c.1880</h3>
             <p>American Federal-style carved and gilded frame. Original glass with characteristic silvering loss. 48"×72" overall.</p>
             <div class="item-price">$2,800</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="books">
+        <div class="item-card" data-cat="books" data-id="audubon-folio-print" data-price-cents="450000">
           <div class="item-img">📚
             <span class="item-badge">New</span>
           </div>
@@ -114,36 +125,40 @@
             <h3>Audubon Folio Print, Original</h3>
             <p>Hand-coloured lithograph from "Birds of America," double elephant folio. Plate CCCXII — Great Blue Heron. Fine condition.</p>
             <div class="item-price">$4,500</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="objects">
+        <div class="item-card" data-cat="objects" data-id="chinese-export-porcelain-pair" data-price-cents="560000">
           <div class="item-img">🏺</div>
           <div class="item-body">
             <div class="item-category">Decorative Objects</div>
             <h3>Chinese Export Porcelain Pair</h3>
             <p>Famille rose vases, Qianlong period (18th c.). Figural reserves on turquoise ground. Both with minor rim restoration.</p>
             <div class="item-price">$5,600</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="jewellery">
+        <div class="item-card" data-cat="jewellery" data-id="art-nouveau-enamel-pendant" data-price-cents="195000">
           <div class="item-img">⌚</div>
           <div class="item-body">
             <div class="item-category">Jewellery</div>
             <h3>Art Nouveau Enamel Pendant</h3>
             <p>Plique-à-jour enamel dragonfly on 14k gold chain. French, circa 1905. Stamped with French guarantee marks. Magnificent condition.</p>
             <div class="item-price">$1,950</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
-        <div class="item-card" data-cat="art">
+        <div class="item-card" data-cat="art" data-id="portrait-of-a-lady-1848" data-price-cents="175000">
           <div class="item-img">🎨</div>
           <div class="item-body">
             <div class="item-category">Fine Art</div>
             <h3>Portrait of a Lady, 1848</h3>
             <p>Attributed to Chester Harding school. Oil on canvas, 24×30". Half-length portrait with lace collar. Period frame.</p>
             <div class="item-price">$1,750</div>
+            <button class="add-to-cart-btn" type="button">Add to Cart</button>
           </div>
         </div>
 
