@@ -268,36 +268,48 @@ function renderCartPage() {
     checkoutButton.textContent = "Processing...";
 
     try {
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json"
-        },
-        body: JSON.stringify({
-          cartItems: cart,
-          successUrl: `${window.location.origin}/success.html`,
-          cancelUrl: `${window.location.origin}/cancel.html`
-        })
+      const endpoints = ["/api/cart", "/.netlify/functions/cart"];
+      const requestBody = JSON.stringify({
+        cartItems: cart,
+        successUrl: `${window.location.origin}/success.html`,
+        cancelUrl: `${window.location.origin}/cancel.html`
       });
 
-      const raw = await response.text();
-      let payload = null;
-      if (raw) {
-        try {
-          payload = JSON.parse(raw);
-        } catch (parseError) {
-          payload = null;
+      let finalError = "Checkout could not be started.";
+
+      for (const endpoint of endpoints) {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          },
+          body: requestBody
+        });
+
+        const raw = await response.text();
+        let payload = null;
+        if (raw) {
+          try {
+            payload = JSON.parse(raw);
+          } catch (parseError) {
+            payload = null;
+          }
+        }
+
+        if (response.ok && payload?.url) {
+          window.location.href = payload.url;
+          return;
+        }
+
+        if (response.status !== 404) {
+          const fallback = raw ? raw.slice(0, 180) : "";
+          finalError = payload?.error || fallback || `Checkout failed (${response.status}).`;
+          break;
         }
       }
 
-      if (!response.ok || !payload?.url) {
-        const fallback = raw ? raw.slice(0, 180) : "";
-        const message = payload?.error || fallback || "Checkout could not be started.";
-        throw new Error(message);
-      }
-
-      window.location.href = payload.url;
+      throw new Error(finalError);
     } catch (error) {
       if (statusMessage) {
         statusMessage.textContent = error instanceof Error ? error.message : "Checkout failed. Please try again.";
