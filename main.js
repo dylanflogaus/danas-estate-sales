@@ -258,11 +258,6 @@ function renderCartPage() {
     if (!cart.length) {
       return;
     }
-    const debugRunId = `checkout_${Date.now()}`;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H1',location:'main.js:262',message:'checkout click start',data:{cartCount:cart.length,origin:window.location.origin},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
 
     if (statusMessage) {
       statusMessage.textContent = "Starting secure checkout...";
@@ -279,16 +274,10 @@ function renderCartPage() {
         successUrl: `${window.location.origin}/success.html`,
         cancelUrl: `${window.location.origin}/cancel.html`
       });
-      const currentOrigin = window.location.origin;
 
       let finalError = "Checkout could not be started.";
-      const endpointDiagnostics = [];
 
       for (const endpoint of endpoints) {
-        // #region agent log
-        fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H2',location:'main.js:286',message:'requesting checkout endpoint',data:{endpoint},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-
         const response = await fetch(endpoint, {
           method: "POST",
           headers: {
@@ -305,21 +294,10 @@ function renderCartPage() {
             payload = JSON.parse(raw);
           } catch (parseError) {
             payload = null;
-            // #region agent log
-            fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H3',location:'main.js:306',message:'endpoint returned non-json body',data:{endpoint,status:response.status,rawSample:raw.slice(0,120)},timestamp:Date.now()})}).catch(()=>{});
-            // #endregion
           }
         }
-        endpointDiagnostics.push(`${endpoint}:${response.status}`);
-
-        // #region agent log
-        fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H2',location:'main.js:313',message:'received endpoint response',data:{endpoint,status:response.status,ok:response.ok,hasUrl:Boolean(payload?.url),hasError:Boolean(payload?.error)},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
 
         if (response.ok && payload?.url) {
-          // #region agent log
-          fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H5',location:'main.js:317',message:'redirecting to stripe url',data:{endpoint},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
           window.location.href = payload.url;
           return;
         }
@@ -332,17 +310,10 @@ function renderCartPage() {
       }
 
       if (finalError === "Checkout could not be started.") {
-        // #region agent log
-        fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H4',location:'main.js:333',message:'all endpoints unresolved',data:{endpointsTried:endpoints},timestamp:Date.now()})}).catch(()=>{});
-        // #endregion
-        const detail = endpointDiagnostics.length ? ` [${endpointDiagnostics.join(", ")}]` : "";
-        throw new Error(`Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed. origin=${currentOrigin}${detail}`);
+        throw new Error("Checkout API route was not found.");
       }
       throw new Error(finalError);
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H5',location:'main.js:339',message:'checkout flow failed',data:{errorMessage:error instanceof Error ? error.message : 'unknown',origin:window.location.origin,endpointDiagnostics},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       if (statusMessage) {
         statusMessage.textContent = error instanceof Error ? error.message : "Checkout failed. Please try again.";
         statusMessage.classList.add("error");
