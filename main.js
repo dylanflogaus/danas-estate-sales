@@ -281,6 +281,7 @@ function renderCartPage() {
       });
 
       let finalError = "Checkout could not be started.";
+      const endpointDiagnostics = [];
 
       for (const endpoint of endpoints) {
         // #region agent log
@@ -308,6 +309,7 @@ function renderCartPage() {
             // #endregion
           }
         }
+        endpointDiagnostics.push(`${endpoint}:${response.status}`);
 
         // #region agent log
         fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H2',location:'main.js:313',message:'received endpoint response',data:{endpoint,status:response.status,ok:response.ok,hasUrl:Boolean(payload?.url),hasError:Boolean(payload?.error)},timestamp:Date.now()})}).catch(()=>{});
@@ -332,7 +334,8 @@ function renderCartPage() {
         // #region agent log
         fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H4',location:'main.js:333',message:'all endpoints unresolved',data:{endpointsTried:endpoints},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
-        throw new Error("Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed.");
+        const detail = endpointDiagnostics.length ? ` [${endpointDiagnostics.join(", ")}]` : "";
+        throw new Error(`Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed.${detail}`);
       }
       throw new Error(finalError);
     } catch (error) {
