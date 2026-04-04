@@ -1,6 +1,15 @@
 const MAX_ITEMS = 25;
 const MAX_QTY_PER_ITEM = 10;
 
+function jsonResponse(payload, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+}
+
 function sanitizeCartItems(items) {
   if (!Array.isArray(items)) {
     return [];
@@ -55,33 +64,21 @@ function isAbsoluteHttpUrl(value) {
   }
 }
 
-exports.handler = async function handler(event) {
-  if (event.httpMethod !== "POST") {
-    return {
-      statusCode: 405,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Method not allowed." })
-    };
+async function handleCheckoutApi(request, env) {
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed." }, 405);
   }
 
-  const secret = process.env.STRIPE_SECRET_KEY;
+  const secret = env.STRIPE_SECRET_KEY;
   if (!secret) {
-    return {
-      statusCode: 500,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Missing STRIPE_SECRET_KEY server configuration." })
-    };
+    return jsonResponse({ error: "Missing STRIPE_SECRET_KEY server configuration." }, 500);
   }
 
   let body;
   try {
-    body = JSON.parse(event.body || "{}");
+    body = await request.json();
   } catch (error) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid JSON body." })
-    };
+    return jsonResponse({ error: "Invalid JSON body." }, 400);
   }
 
   const cartItems = sanitizeCartItems(body?.cartItems);
@@ -89,46 +86,59 @@ exports.handler = async function handler(event) {
   const cancelUrl = String(body?.cancelUrl || "");
 
   if (!cartItems.length) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Cart is empty or invalid." })
-    };
+    return jsonResponse({ error: "Cart is empty or invalid." }, 400);
   }
 
   if (!isAbsoluteHttpUrl(successUrl) || !isAbsoluteHttpUrl(cancelUrl)) {
-    return {
-      statusCode: 400,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: "Invalid success or cancel URL." })
-    };
+    return jsonResponse({ error: "Invalid success or cancel URL." }, 400);
   }
 
-  const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: buildStripeCheckoutBody({ cartItems, successUrl, cancelUrl })
-  });
+  try {
+    const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: buildStripeCheckoutBody({ cartItems, successUrl, cancelUrl })
+    });
 
-  const stripeData = await stripeResponse.json();
-  if (!stripeResponse.ok) {
-    const message = stripeData?.error?.message || "Unable to create Stripe checkout session.";
-    return {
-      statusCode: 502,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ error: message })
-    };
-  }
+    const stripeRaw = await stripeResponse.text();
+    let stripeData = null;
+    if (stripeRaw) {
+      try {
+        stripeData = JSON.parse(stripeRaw);
+      } catch (error) {
+        stripeData = null;
+      }
+    }
 
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+    if (!stripeResponse.ok) {
+      const message = stripeData?.error?.message || "Unable to create Stripe checkout session.";
+      return jsonResponse({ error: message }, 502);
+    }
+
+    if (!stripeData?.url || !stripeData?.id) {
+      return jsonResponse({ error: "Stripe session response was invalid." }, 502);
+    }
+
+    return jsonResponse({
       sessionId: stripeData.id,
       url: stripeData.url
-    })
-  };
+    });
+  } catch (error) {
+    return jsonResponse({ error: "Checkout server error. Please try again." }, 500);
+  }
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/cart") {
+      return handleCheckoutApi(request, env);
+    }
+
+    return env.ASSETS.fetch(request);
+  }
 };

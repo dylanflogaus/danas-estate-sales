@@ -273,12 +273,13 @@ function renderCartPage() {
     checkoutButton.textContent = "Processing...";
 
     try {
-      const endpoints = ["/api/cart", "/.netlify/functions/cart"];
+      const endpoints = ["/api/cart"];
       const requestBody = JSON.stringify({
         cartItems: cart,
         successUrl: `${window.location.origin}/success.html`,
         cancelUrl: `${window.location.origin}/cancel.html`
       });
+      const currentOrigin = window.location.origin;
 
       let finalError = "Checkout could not be started.";
       const endpointDiagnostics = [];
@@ -335,12 +336,12 @@ function renderCartPage() {
         fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H4',location:'main.js:333',message:'all endpoints unresolved',data:{endpointsTried:endpoints},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         const detail = endpointDiagnostics.length ? ` [${endpointDiagnostics.join(", ")}]` : "";
-        throw new Error(`Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed.${detail}`);
+        throw new Error(`Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed. origin=${currentOrigin}${detail}`);
       }
       throw new Error(finalError);
     } catch (error) {
       // #region agent log
-      fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H5',location:'main.js:339',message:'checkout flow failed',data:{errorMessage:error instanceof Error ? error.message : 'unknown'},timestamp:Date.now()})}).catch(()=>{});
+      fetch('http://127.0.0.1:7514/ingest/bb62abd7-2372-4ba7-81e8-0a56ddab09ec',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'0afdba'},body:JSON.stringify({sessionId:'0afdba',runId:debugRunId,hypothesisId:'H5',location:'main.js:339',message:'checkout flow failed',data:{errorMessage:error instanceof Error ? error.message : 'unknown',origin:window.location.origin,endpointDiagnostics},timestamp:Date.now()})}).catch(()=>{});
       // #endregion
       if (statusMessage) {
         statusMessage.textContent = error instanceof Error ? error.message : "Checkout failed. Please try again.";
