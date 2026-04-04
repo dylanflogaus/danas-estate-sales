@@ -64,8 +64,12 @@ function isAbsoluteHttpUrl(value) {
   }
 }
 
-export async function onRequestPost(context) {
+export async function onRequest(context) {
   const { request, env } = context;
+  if (request.method !== "POST") {
+    return jsonResponse({ error: "Method not allowed." }, 405);
+  }
+
   const secret = env.STRIPE_SECRET_KEY;
 
   if (!secret) {
@@ -93,23 +97,40 @@ export async function onRequestPost(context) {
 
   const stripeRequestBody = buildStripeCheckoutBody({ cartItems, successUrl, cancelUrl });
 
-  const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${secret}`,
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: stripeRequestBody
-  });
+  try {
+    const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${secret}`,
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: stripeRequestBody
+    });
 
-  const stripeData = await stripeResponse.json();
-  if (!stripeResponse.ok) {
-    const message = stripeData?.error?.message || "Unable to create Stripe checkout session.";
-    return jsonResponse({ error: message }, 502);
+    const stripeRaw = await stripeResponse.text();
+    let stripeData = null;
+    if (stripeRaw) {
+      try {
+        stripeData = JSON.parse(stripeRaw);
+      } catch (error) {
+        stripeData = null;
+      }
+    }
+
+    if (!stripeResponse.ok) {
+      const message = stripeData?.error?.message || "Unable to create Stripe checkout session.";
+      return jsonResponse({ error: message }, 502);
+    }
+
+    if (!stripeData?.url || !stripeData?.id) {
+      return jsonResponse({ error: "Stripe session response was invalid." }, 502);
+    }
+
+    return jsonResponse({
+      sessionId: stripeData.id,
+      url: stripeData.url
+    });
+  } catch (error) {
+    return jsonResponse({ error: "Checkout server error. Please try again." }, 500);
   }
-
-  return jsonResponse({
-    sessionId: stripeData.id,
-    url: stripeData.url
-  });
 }

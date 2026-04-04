@@ -309,6 +309,9 @@ function renderCartPage() {
         }
       }
 
+      if (finalError === "Checkout could not be started.") {
+        throw new Error("Checkout API route was not found. Confirm Cloudflare Pages Functions are enabled and deployed.");
+      }
       throw new Error(finalError);
     } catch (error) {
       if (statusMessage) {
