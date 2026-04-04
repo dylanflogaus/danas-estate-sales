@@ -271,7 +271,8 @@ function renderCartPage() {
       const response = await fetch("/api/cart", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Accept: "application/json"
         },
         body: JSON.stringify({
           cartItems: cart,
@@ -280,9 +281,20 @@ function renderCartPage() {
         })
       });
 
-      const payload = await response.json();
-      if (!response.ok || !payload.url) {
-        throw new Error(payload.error || "Checkout could not be started.");
+      const raw = await response.text();
+      let payload = null;
+      if (raw) {
+        try {
+          payload = JSON.parse(raw);
+        } catch (parseError) {
+          payload = null;
+        }
+      }
+
+      if (!response.ok || !payload?.url) {
+        const fallback = raw ? raw.slice(0, 180) : "";
+        const message = payload?.error || fallback || "Checkout could not be started.";
+        throw new Error(message);
       }
 
       window.location.href = payload.url;
