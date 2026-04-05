@@ -7,9 +7,17 @@
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": "public",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "danas-estate-sales",
+      "database_id": "74ad4d9b-6e42-43d0-b0a0-d0375aae6f31"
+    }
   ]
 }

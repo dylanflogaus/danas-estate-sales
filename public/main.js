@@ -41,6 +41,14 @@ function formatPrice(cents) {
   })}`;
 }
 
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function updateCartBadge() {
   const cart = loadCart();
   const count = getCartItemCount(cart);
@@ -133,7 +141,11 @@ function initActiveNavLink() {
 }
 
 function initStoreFilters() {
-  const filterButtons = document.querySelectorAll(".filter-btn");
+  const bar = document.querySelector("[data-store-filters]");
+  if (!bar) {
+    return;
+  }
+  const filterButtons = bar.querySelectorAll(".filter-btn");
   if (!filterButtons.length) {
     return;
   }
@@ -143,7 +155,7 @@ function initStoreFilters() {
       filterButtons.forEach((btn) => btn.classList.remove("active"));
       button.classList.add("active");
       const category = button.dataset.cat;
-      document.querySelectorAll(".item-card").forEach((card) => {
+      document.querySelectorAll(".items-grid .item-card").forEach((card) => {
         card.style.display = category === "all" || card.dataset.cat === category ? "" : "none";
       });
     });
@@ -171,34 +183,127 @@ function buildProductFromCard(card) {
   };
 }
 
-function initStoreCartButtons() {
-  const addButtons = document.querySelectorAll(".add-to-cart-btn");
-  if (!addButtons.length) {
+let openStoreItemModal = null;
+
+function renderProductCards(grid, products) {
+  grid.replaceChildren();
+  for (const p of products) {
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-haspopup", "dialog");
+    card.dataset.cat = p.category_slug;
+    card.dataset.id = p.id;
+    card.dataset.priceCents = String(p.price_cents);
+    card.dataset.imageCount = String(p.image_count ?? 4);
+    const imgSrc = p.hero_image_url || "assets/icons/image.svg";
+    const badgeHtml = p.badge
+      ? `<span class="item-badge">${escapeHtml(p.badge)}</span>`
+      : "";
+    card.innerHTML = `
+      <div class="item-img">
+        <img src="${escapeHtml(imgSrc)}" alt="" class="item-placeholder-icon" width="48" height="48" />
+        ${badgeHtml}
+      </div>
+      <div class="item-body">
+        <p class="item-card-hint">View photos &amp; details</p>
+        <div class="item-category">${escapeHtml(p.category_label)}</div>
+        <h3>${escapeHtml(p.name)}</h3>
+        <p>${escapeHtml(p.description)}</p>
+        <div class="item-price">${escapeHtml(formatPrice(p.price_cents))}</div>
+        <button class="add-to-cart-btn" type="button">Add to Cart</button>
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+async function bootstrapStorePage() {
+  const grid = document.querySelector("[data-dynamic-catalog]");
+  const status = document.querySelector("[data-catalog-status]");
+  if (status) {
+    status.classList.remove("error");
+    status.textContent = grid ? "Loading catalog…" : "";
+  }
+  if (!grid) {
     return;
   }
+  try {
+    const res = await fetch("/api/products");
+    if (!res.ok) {
+      throw new Error("Could not load products.");
+    }
+    const data = await res.json();
+    const products = Array.isArray(data.products) ? data.products : [];
+    renderProductCards(grid, products);
+    if (status) {
+      status.textContent = "";
+    }
+  } catch (error) {
+    if (status) {
+      status.textContent = error instanceof Error ? error.message : "Unable to load catalog.";
+      status.classList.add("error");
+    }
+  }
+  syncStoreCartButtonsFromCart();
+}
 
-  addButtons.forEach((button) => {
-    button.addEventListener("click", (e) => {
+function initStoreGridInteractions() {
+  const grid = document.querySelector(".items-grid");
+  if (!grid || grid.dataset.gridInteractions === "1") {
+    return;
+  }
+  grid.dataset.gridInteractions = "1";
+  ensureStoreModalShell();
+
+  grid.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) {
+      return;
+    }
+    const addBtn = t.closest(".add-to-cart-btn");
+    if (addBtn) {
       e.stopPropagation();
-      const card = button.closest(".item-card");
-      if (!card) {
+      const card = addBtn.closest(".item-card");
+      if (!card || !grid.contains(card)) {
         return;
       }
-
       const product = buildProductFromCard(card);
       if (!product) {
         setCartMessage("Could not add item to cart. Please try again.", true);
         return;
       }
-
       if (!tryAddUniqueCartItem(product)) {
         setCartMessage(`"${product.name}" is already in your cart.`, true);
         return;
       }
-      setAddToCartButtonState(button, true);
+      setAddToCartButtonState(addBtn, true);
       syncStoreCartButtonsFromCart();
       setCartMessage(`Added "${product.name}" to your cart.`);
-    });
+      return;
+    }
+    const card = t.closest(".item-card");
+    if (card && grid.contains(card) && openStoreItemModal) {
+      openStoreItemModal(card);
+    }
+  });
+
+  grid.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") {
+      return;
+    }
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) {
+      return;
+    }
+    if (t.closest(".add-to-cart-btn")) {
+      return;
+    }
+    const card = t.closest(".item-card");
+    if (card && grid.contains(card) && openStoreItemModal) {
+      e.preventDefault();
+      openStoreItemModal(card);
+    }
   });
 }
 
@@ -519,15 +624,15 @@ function buildStoreGallery(headerEl, imageSrc, slideCount) {
   update();
 }
 
-function initStoreModal() {
+function ensureStoreModalShell() {
   const modal = document.querySelector("[data-store-modal]");
   const modalContent = document.querySelector("[data-store-modal-content]");
   const modalHeader = document.querySelector("[data-store-modal-header]");
-  if (!modal || !modalContent || !modalHeader) {
+  if (!modal || !modalContent || !modalHeader || modal.dataset.modalShellBound === "1") {
     return;
   }
+  modal.dataset.modalShellBound = "1";
 
-  const cards = document.querySelectorAll(".items-grid .item-card");
   const closeTriggers = modal.querySelectorAll("[data-store-modal-close]");
   let lastFocused = null;
 
@@ -618,23 +723,7 @@ function initStoreModal() {
     modal.querySelector(".event-modal-close")?.focus();
   }
 
-  cards.forEach((card) => {
-    card.addEventListener("click", (e) => {
-      if (e.target instanceof HTMLElement && e.target.closest(".add-to-cart-btn")) {
-        return;
-      }
-      openModal(card);
-    });
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        if (event.target instanceof HTMLElement && event.target.closest(".add-to-cart-btn")) {
-          return;
-        }
-        event.preventDefault();
-        openModal(card);
-      }
-    });
-  });
+  openStoreItemModal = openModal;
 
   closeTriggers.forEach((el) => {
     el.addEventListener("click", closeModal);
@@ -647,15 +736,149 @@ function initStoreModal() {
   });
 }
 
-function initEventsPage() {
+const MONTH_FILTER_LABELS = {
+  jan: "January",
+  feb: "February",
+  mar: "March",
+  apr: "April",
+  may: "May",
+  jun: "June",
+  jul: "July",
+  aug: "August",
+  sep: "September",
+  oct: "October",
+  nov: "November",
+  dec: "December"
+};
+
+function buildMonthFilterBar(barEl, events) {
+  barEl.replaceChildren();
+  const seen = new Set();
+  const keys = [];
+  for (const ev of events) {
+    const k = ev.month_key;
+    if (k && !seen.has(k)) {
+      seen.add(k);
+      keys.push(k);
+    }
+  }
+
+  function makeBtn(label, key, active) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "filter-btn events-filter-btn" + (active ? " active" : "");
+    b.dataset.eventsMonth = key;
+    b.textContent = label;
+    return b;
+  }
+
+  barEl.appendChild(makeBtn("All", "all", true));
+  for (const m of keys) {
+    barEl.appendChild(makeBtn(MONTH_FILTER_LABELS[m] || m, m, false));
+  }
+
+  function filterButtons() {
+    return barEl.querySelectorAll(".events-filter-btn");
+  }
+
+  filterButtons().forEach((button) => {
+    button.addEventListener("click", () => {
+      filterButtons().forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+      const month = button.dataset.eventsMonth || "all";
+      document.querySelectorAll(".events-list .event-card").forEach((card) => {
+        const cardMonth = card.dataset.eventMonth || "";
+        card.style.display = month === "all" || cardMonth === month ? "" : "none";
+      });
+    });
+  });
+}
+
+function renderEventCards(listEl, events) {
+  listEl.replaceChildren();
+  for (const ev of events) {
+    const article = document.createElement("article");
+    article.className = "event-card";
+    article.tabIndex = 0;
+    article.setAttribute("role", "button");
+    article.setAttribute("aria-haspopup", "dialog");
+    article.dataset.eventMonth = ev.month_key;
+    const extrasBlocks = (ev.extras || [])
+      .map(
+        (b) => `<div class="event-extra-block">
+        <h4 class="event-extra-label">${escapeHtml(b.label)}</h4>
+        <p>${escapeHtml(b.body)}</p>
+      </div>`
+      )
+      .join("");
+    const tags = (ev.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("");
+    article.innerHTML = `
+      <div class="event-card-date">
+        <div class="month">${escapeHtml(ev.date_month_label)}</div>
+        <div class="day">${escapeHtml(String(ev.date_day))}</div>
+        <div class="year">${escapeHtml(String(ev.date_year))}</div>
+      </div>
+      <div class="event-card-body">
+        <p class="event-card-hint">View full details</p>
+        <h3>${escapeHtml(ev.title)}</h3>
+        <div class="event-meta">
+          <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> ${escapeHtml(ev.location)}</span>
+          <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> ${escapeHtml(ev.schedule_text)}</span>
+          <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> ${escapeHtml(ev.event_type)}</span>
+        </div>
+        <p class="event-card-lead">${escapeHtml(ev.lead)}</p>
+        <div class="event-card-extras" aria-hidden="true">
+          <div class="event-extra-grid">${extrasBlocks}</div>
+        </div>
+        <div class="event-tags">${tags}</div>
+      </div>`;
+    listEl.appendChild(article);
+  }
+}
+
+async function bootstrapEventsPage() {
+  const listEl = document.querySelector("[data-dynamic-events]");
+  const barEl = document.querySelector("[data-events-filter-bar]");
+  const status = document.querySelector("[data-events-status]");
+  if (!listEl || !barEl) {
+    return;
+  }
+  if (status) {
+    status.classList.remove("error");
+    status.textContent = "Loading events…";
+  }
+  try {
+    const res = await fetch("/api/events");
+    if (!res.ok) {
+      throw new Error("Could not load events.");
+    }
+    const data = await res.json();
+    const events = Array.isArray(data.events) ? data.events : [];
+    renderEventCards(listEl, events);
+    buildMonthFilterBar(barEl, events);
+    if (status) {
+      status.textContent = "";
+    }
+    initEventsListDelegation();
+  } catch (error) {
+    if (status) {
+      status.textContent = error instanceof Error ? error.message : "Unable to load events.";
+      status.classList.add("error");
+    }
+  }
+}
+
+let openEventItemModal = null;
+
+function ensureEventsModalShell() {
   const modal = document.querySelector("[data-event-modal]");
   const modalContent = document.querySelector("[data-event-modal-content]");
   const modalHeader = modal?.querySelector("[data-event-modal-header]");
-  if (!modal || !modalContent || !modalHeader) {
+  if (!modal || !modalContent || !modalHeader || modal.dataset.modalShellBound === "1") {
     return;
   }
+  modal.dataset.modalShellBound = "1";
 
-  const cards = document.querySelectorAll(".events-list .event-card");
   const closeTriggers = modal.querySelectorAll("[data-event-modal-close]");
   let lastFocused = null;
 
@@ -736,15 +959,7 @@ function initEventsPage() {
     modal.querySelector(".event-modal-close")?.focus();
   }
 
-  cards.forEach((card) => {
-    card.addEventListener("click", () => openModal(card));
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        openModal(card);
-      }
-    });
-  });
+  openEventItemModal = openModal;
 
   closeTriggers.forEach((el) => {
     el.addEventListener("click", closeModal);
@@ -755,27 +970,59 @@ function initEventsPage() {
       closeModal();
     }
   });
+}
 
-  const filterButtons = document.querySelectorAll(".events-filter-btn");
-  filterButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      filterButtons.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-      const month = button.dataset.eventsMonth || "all";
-      cards.forEach((card) => {
-        const cardMonth = card.dataset.eventMonth || "";
-        card.style.display = month === "all" || cardMonth === month ? "" : "none";
-      });
-    });
+function initEventsListDelegation() {
+  const listEl = document.querySelector(".events-list");
+  if (!listEl || listEl.dataset.listInteractions === "1") {
+    return;
+  }
+  listEl.dataset.listInteractions = "1";
+
+  ensureEventsModalShell();
+
+  listEl.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) {
+      return;
+    }
+    const card = t.closest(".event-card");
+    if (card && listEl.contains(card) && openEventItemModal) {
+      openEventItemModal(card);
+    }
   });
+
+  listEl.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") {
+      return;
+    }
+    const t = e.target;
+    if (!(t instanceof HTMLElement)) {
+      return;
+    }
+    const card = t.closest(".event-card");
+    if (card && listEl.contains(card) && openEventItemModal) {
+      e.preventDefault();
+      openEventItemModal(card);
+    }
+  });
+}
+
+function initEventsPage() {
+  if (document.querySelector("[data-dynamic-events]")) {
+    void bootstrapEventsPage();
+  }
 }
 
 initMobileNav();
 initActiveNavLink();
 initStoreFilters();
-initStoreCartButtons();
-initStoreModal();
-syncStoreCartButtonsFromCart();
+initStoreGridInteractions();
+if (document.querySelector("[data-dynamic-catalog]")) {
+  void bootstrapStorePage();
+} else {
+  syncStoreCartButtonsFromCart();
+}
 renderCartPage();
 initSuccessPage();
 initEventsPage();

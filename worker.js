@@ -1,3 +1,5 @@
+import { dispatchCatalogApi } from "./catalog-api.js";
+
 const MAX_ITEMS = 25;
 const MAX_QTY_PER_ITEM = 10;
 
@@ -137,6 +139,11 @@ export default {
 
     if (url.pathname === "/api/cart") {
       return handleCheckoutApi(request, env);
+    }
+
+    const catalogResponse = await dispatchCatalogApi(request, env, url.pathname);
+    if (catalogResponse) {
+      return catalogResponse;
     }
 
     return env.ASSETS.fetch(request);

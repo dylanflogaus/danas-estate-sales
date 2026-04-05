@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local `wrangler dev` (do not commit .dev.vars)
+
+ADMIN_PASSWORD=change-me-to-a-long-random-secret
+# STRIPE_SECRET_KEY=sk_test_...   # optional for checkout locally

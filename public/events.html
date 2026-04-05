@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upcoming Events — Dana's Estate Sales</title>
+  <meta name="description" content="View Dana's Estate Sales upcoming estate sale events across the Delaware Valley. Each sale is a curated, in-person experience open to the public." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      Dana's Estate Sales
+      <span>Est. 1987 &bull; Wilmington, DE</span>
+    </a>
+    <div class="nav-toggle-wrap">
+      <button class="nav-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="nav-cart-badge" data-nav-cart-badge aria-hidden="true"></span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="store.html">Store</a></li>
+      <li><a href="events.html" class="active">Events</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart (<span data-cart-count>0</span>)</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-hero">
+    <p class="eyebrow">Open to the Public</p>
+    <h1>Upcoming <em>Estate Sales</em></h1>
+    <div class="ornament" style="position:relative;"><span class="ornament-mark" aria-hidden="true"><img src="assets/icons/star.svg" alt="" width="14" height="14" /></span></div>
+    <p>Each event is an invitation to step inside a remarkable home and discover the treasures within. Sales are open to the public; no registration required unless noted.</p>
+  </div>
+
+  <section class="events-section">
+    <div class="container">
+
+      <p class="section-label">Spring 2026</p>
+      <h2 class="section-title events-section-title">Current & <em>Coming Soon</em></h2>
+
+      <div class="events-toolbar">
+        <p class="events-toolbar-label">Filter by month</p>
+        <div class="events-filter-bar" role="group" aria-label="Filter events by month" data-events-filter-bar></div>
+      </div>
+
+      <p class="store-message catalog-status" data-events-status aria-live="polite"></p>
+
+      <div class="events-list" data-dynamic-events></div>
+
+      <div class="events-cta-panel">
+        <p class="section-label">Stay Informed</p>
+        <h3 class="events-cta-title">Never Miss a Sale</h3>
+        <p class="events-cta-text">Join our mailing list to receive advance notice of upcoming estate sales, preview access, and occasional offerings from our online store.</p>
+        <a href="contact.html" class="btn">Join the Mailing List</a>
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<div class="event-modal" data-event-modal hidden aria-modal="true" role="dialog" aria-labelledby="event-modal-title">
+  <div class="event-modal-backdrop" data-event-modal-close tabindex="-1" aria-hidden="true"></div>
+  <div class="event-modal-panel">
+    <button type="button" class="event-modal-close" data-event-modal-close aria-label="Close event details">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="event-modal-header" data-event-modal-header></div>
+    <div class="event-modal-scroll">
+      <div class="event-modal-inner" data-event-modal-content></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">Dana's Estate Sales <span>Est. 1987 &bull; Wilmington, DE</span></div>
+      <p>Specialising in fine antiques, art, jewellery, and the complete dispersal of distinguished private estates throughout the Delaware Valley and beyond.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="store.html">Online Store</a></li>
+        <li><a href="events.html">Upcoming Events</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="mailto:info@danasestatesales.com">info@danasestatesales.com</a></li>
+        <li><a href="tel:+13025550192">(302) 555-0192</a></li>
+        <li><a href="contact.html">Wilmington, DE 19801</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Dana's Estate Sales. All rights reserved.</span>
+    <span>Wilmington, Delaware</span>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>

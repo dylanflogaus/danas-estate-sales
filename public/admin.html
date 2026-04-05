@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Dana's Estate Sales</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="admin-body">
+
+<header class="admin-header">
+  <div class="admin-header-inner">
+    <h1 class="admin-title">Site admin</h1>
+    <p class="admin-subtitle">Manage store products and public events</p>
+  </div>
+</header>
+
+<main class="admin-main">
+  <p class="admin-status" data-admin-status role="status" aria-live="polite"></p>
+
+  <section class="admin-card" data-admin-login-panel>
+    <h2>Sign in</h2>
+    <form class="admin-form" data-admin-login-form>
+      <label class="admin-label">
+        Password
+        <input type="password" name="password" autocomplete="current-password" required class="admin-input" />
+      </label>
+      <button type="submit" class="btn admin-btn-primary">Sign in</button>
+    </form>
+  </section>
+
+  <div class="admin-dashboard" data-admin-dashboard hidden>
+    <div class="admin-toolbar">
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab active" role="tab" aria-selected="true" data-admin-tab="products">Products</button>
+        <button type="button" class="admin-tab" role="tab" aria-selected="false" data-admin-tab="events">Events</button>
+      </div>
+      <button type="button" class="btn admin-btn-ghost" data-admin-logout>Sign out</button>
+    </div>
+
+    <section class="admin-panel" data-admin-panel="products">
+      <div class="admin-panel-head">
+        <h2>Products</h2>
+        <button type="button" class="btn" data-admin-new-product>New product</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Id</th>
+              <th>Name</th>
+              <th>Price</th>
+              <th>Category</th>
+              <th>Active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-admin-products-tbody></tbody>
+        </table>
+      </div>
+
+      <div class="admin-form-card" data-admin-product-form-panel hidden>
+        <h3 data-admin-product-form-title>New product</h3>
+        <form class="admin-form admin-form-grid" data-admin-product-form>
+          <input type="hidden" name="editingId" value="" />
+          <label class="admin-label">Id (slug) <input name="id" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
+          <label class="admin-label">Name <input name="name" required class="admin-input" /></label>
+          <label class="admin-label">Description <textarea name="description" rows="3" class="admin-input"></textarea></label>
+          <label class="admin-label">Price (cents) <input name="price_cents" type="number" min="1" step="1" required class="admin-input" /></label>
+          <label class="admin-label">Category slug <input name="category_slug" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="lowercase slug" /></label>
+          <label class="admin-label">Category label <input name="category_label" required class="admin-input" /></label>
+          <label class="admin-label">Image count <input name="image_count" type="number" min="1" max="50" value="4" class="admin-input" /></label>
+          <label class="admin-label">Hero image URL <input name="hero_image_url" class="admin-input" placeholder="assets/icons/image.svg" /></label>
+          <label class="admin-label">Badge <input name="badge" class="admin-input" placeholder="Optional" /></label>
+          <label class="admin-label">Sort order <input name="sort_order" type="number" step="1" value="0" class="admin-input" /></label>
+          <label class="admin-label admin-check">
+            <input name="is_active" type="checkbox" checked /> Active (visible on store)
+          </label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn admin-btn-primary">Save</button>
+            <button type="button" class="btn admin-btn-ghost" data-admin-product-cancel>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <section class="admin-panel" data-admin-panel="events" hidden>
+      <div class="admin-panel-head">
+        <h2>Events</h2>
+        <button type="button" class="btn" data-admin-new-event>New event</button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Title</th>
+              <th>Location</th>
+              <th>Active</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody data-admin-events-tbody></tbody>
+        </table>
+      </div>
+
+      <div class="admin-form-card" data-admin-event-form-panel hidden>
+        <h3 data-admin-event-form-title>New event</h3>
+        <form class="admin-form admin-form-grid" data-admin-event-form>
+          <input type="hidden" name="editingId" value="" />
+          <label class="admin-label">Id (slug) <input name="id" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
+          <label class="admin-label">Starts on (YYYY-MM-DD) <input name="starts_on" required class="admin-input" pattern="\d{4}-\d{2}-\d{2}" /></label>
+          <label class="admin-label">Month key (filter) <input name="month_key" required class="admin-input" maxlength="3" pattern="[a-z]{3}" title="e.g. apr" /></label>
+          <label class="admin-label">Month label (card) <input name="date_month_label" required class="admin-input" placeholder="Apr" /></label>
+          <label class="admin-label">Day <input name="date_day" type="number" min="1" max="31" required class="admin-input" /></label>
+          <label class="admin-label">Year <input name="date_year" type="number" min="1900" max="2200" required class="admin-input" /></label>
+          <label class="admin-label">Title <input name="title" required class="admin-input" /></label>
+          <label class="admin-label">Location <input name="location" required class="admin-input" /></label>
+          <label class="admin-label">Schedule <input name="schedule_text" required class="admin-input" /></label>
+          <label class="admin-label">Type <input name="event_type" required class="admin-input" /></label>
+          <label class="admin-label">Lead <textarea name="lead" rows="4" required class="admin-input"></textarea></label>
+          <label class="admin-label">Extras (JSON array of {label, body}) <textarea name="extras_json" rows="6" required class="admin-input admin-textarea-mono"></textarea></label>
+          <label class="admin-label">Tags (JSON array of strings) <textarea name="tags_json" rows="3" required class="admin-input admin-textarea-mono"></textarea></label>
+          <label class="admin-label">Sort order <input name="sort_order" type="number" step="1" value="0" class="admin-input" /></label>
+          <label class="admin-label admin-check">
+            <input name="is_active" type="checkbox" checked /> Active (visible on events page)
+          </label>
+          <div class="admin-form-actions">
+            <button type="submit" class="btn admin-btn-primary">Save</button>
+            <button type="button" class="btn admin-btn-ghost" data-admin-event-cancel>Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="admin.js"></script>
+</body>
+</html>

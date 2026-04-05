@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Store — Dana's Estate Sales</title>
+  <meta name="description" content="Browse our curated selection of antique furniture, fine art, estate jewellery, and decorative objects available for immediate purchase." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">
+      Dana's Estate Sales
+      <span>Est. 1987 &bull; Wilmington, DE</span>
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="store.html" class="active">Store</a></li>
+      <li><a href="events.html">Events</a></li>
+      <li><a href="contact.html">Contact</a></li>
+      <li><a href="cart.html">Cart (<span data-cart-count>0</span>)</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-hero">
+    <p class="eyebrow">Curated Items</p>
+    <h1>The <em>Online Store</em></h1>
+    <div class="ornament" style="position:relative;"><span class="ornament-mark" aria-hidden="true"><img src="assets/icons/star.svg" alt="" width="14" height="14" /></span></div>
+    <p>Each piece in our collection is hand-selected, photographed, and described with the care it deserves. Available for purchase and local pickup or shipping.</p>
+  </div>
+
+  <section style="background:var(--deep);padding:4rem 2rem;">
+    <div class="container">
+      <div class="filter-bar" data-store-filters>
+        <button class="filter-btn active" data-cat="all">All Items</button>
+        <button class="filter-btn" data-cat="furniture">Furniture</button>
+        <button class="filter-btn" data-cat="art">Fine Art</button>
+        <button class="filter-btn" data-cat="jewellery">Jewellery</button>
+        <button class="filter-btn" data-cat="objects">Decorative Objects</button>
+        <button class="filter-btn" data-cat="books">Books & Ephemera</button>
+      </div>
+
+      <div class="store-actions">
+        <a href="cart.html" class="btn">View Cart (<span data-cart-count>0</span>)</a>
+        <p class="store-message" data-cart-message aria-live="polite"></p>
+      </div>
+
+      <p class="store-message catalog-status" data-catalog-status aria-live="polite"></p>
+
+      <div class="items-grid" data-dynamic-catalog></div>
+
+      <div style="text-align:center;margin-top:3.5rem;">
+        <p style="color:var(--warm-gray);font-style:italic;margin-bottom:1.5rem;">Inventory changes frequently. Contact us to inquire about specific items, request additional photographs, or arrange a private viewing.</p>
+        <a href="contact.html" class="btn">Inquire About an Item</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="event-modal" data-store-modal hidden aria-modal="true" role="dialog" aria-labelledby="store-modal-title">
+  <div class="event-modal-backdrop" data-store-modal-close tabindex="-1" aria-hidden="true"></div>
+  <div class="event-modal-panel">
+    <button type="button" class="event-modal-close" data-store-modal-close aria-label="Close item details">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="event-modal-header store-modal-header" data-store-modal-header></div>
+    <div class="event-modal-scroll">
+      <div class="event-modal-inner" data-store-modal-content></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="nav-logo">Dana's Estate Sales <span>Est. 1987 &bull; Wilmington, DE</span></div>
+      <p>Specialising in fine antiques, art, jewellery, and the complete dispersal of distinguished private estates throughout the Delaware Valley and beyond.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="store.html">Online Store</a></li>
+        <li><a href="events.html">Upcoming Events</a></li>
+        <li><a href="contact.html">Contact Us</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul>
+        <li><a href="mailto:info@danasestatesales.com">info@danasestatesales.com</a></li>
+        <li><a href="tel:+13025550192">(302) 555-0192</a></li>
+        <li><a href="contact.html">Wilmington, DE 19801</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Dana's Estate Sales. All rights reserved.</span>
+    <span>Wilmington, Delaware</span>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>

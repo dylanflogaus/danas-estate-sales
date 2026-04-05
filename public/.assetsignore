@@ -1,0 +1,2 @@
+# Optional: exclude stray files from deploy bundles (patterns are gitignore-style)
+.DS_Store
