@@ -15,9 +15,12 @@
       Dana's Estate Sales
       <span>Est. 1987 &bull; Wilmington, DE</span>
     </a>
-    <button class="nav-toggle" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
+    <div class="nav-toggle-wrap">
+      <button class="nav-toggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <span class="nav-cart-badge" data-nav-cart-badge aria-hidden="true"></span>
+    </div>
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="store.html">Store</a></li>
@@ -33,32 +36,59 @@
   <div class="page-hero">
     <p class="eyebrow">Open to the Public</p>
     <h1>Upcoming <em>Estate Sales</em></h1>
-    <div class="ornament" style="position:relative;"><span>✦</span></div>
+    <div class="ornament" style="position:relative;"><span class="ornament-mark" aria-hidden="true"><img src="assets/icons/star.svg" alt="" width="14" height="14" /></span></div>
     <p>Each event is an invitation to step inside a remarkable home and discover the treasures within. Sales are open to the public; no registration required unless noted.</p>
   </div>
 
-  <section style="background:var(--ink);padding:5rem 2rem;">
+  <section class="events-section">
     <div class="container">
 
       <p class="section-label">Spring 2026</p>
-      <h2 class="section-title" style="margin-bottom:2rem;">Current & <em>Coming Soon</em></h2>
+      <h2 class="section-title events-section-title">Current & <em>Coming Soon</em></h2>
+
+      <div class="events-toolbar">
+        <p class="events-toolbar-label">Filter by month</p>
+        <div class="events-filter-bar" role="group" aria-label="Filter events by month">
+          <button type="button" class="filter-btn events-filter-btn active" data-events-month="all">All</button>
+          <button type="button" class="filter-btn events-filter-btn" data-events-month="apr">April</button>
+          <button type="button" class="filter-btn events-filter-btn" data-events-month="may">May</button>
+          <button type="button" class="filter-btn events-filter-btn" data-events-month="jun">June</button>
+        </div>
+      </div>
 
       <div class="events-list">
 
-        <div class="event-card">
+        <article class="event-card" tabindex="0" role="button" aria-haspopup="dialog" data-event-month="apr">
           <div class="event-card-date">
             <div class="month">Apr</div>
             <div class="day">12</div>
             <div class="year">2026</div>
           </div>
           <div class="event-card-body">
+            <p class="event-card-hint">View full details</p>
             <h3>The Harrington Collection</h3>
             <div class="event-meta">
-              <span>📍 Greenville, DE</span>
-              <span>🕘 9am – 4pm · Sat &amp; Sun</span>
-              <span>🏷 In-Person</span>
+              <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> Greenville, DE</span>
+              <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> 9am – 4pm · Sat &amp; Sun</span>
+              <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> In-Person</span>
             </div>
-            <p>A distinguished two-day sale from the estate of the late Eleanor Harrington, longtime Greenville resident and dedicated collector. Highlights include a full service of Georgian sterling silver, an extensive suite of botanical engravings, and an extraordinary Chippendale walnut secretary desk dated approximately 1780. Mid-Century glass, Orientalia, and a large library of first editions round out this exceptional offering.</p>
+            <p class="event-card-lead">A distinguished two-day sale from the estate of the late Eleanor Harrington, longtime Greenville resident and dedicated collector. Highlights include a full service of Georgian sterling silver, an extensive suite of botanical engravings, and an extraordinary Chippendale walnut secretary desk dated approximately 1780. Mid-Century glass, Orientalia, and a large library of first editions round out this exceptional offering.</p>
+            <div class="event-card-extras" aria-hidden="true">
+              <div class="event-extra-grid">
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Parking &amp; arrival</h4>
+                  <p>Complimentary parking on the circular drive; additional street parking on a first-come basis. Please enter through the main foyer—signage will guide you to the dedicated sale rooms on the first and second floors.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Payment &amp; packing</h4>
+                  <p>We accept cash, major credit cards, and approved checks with valid identification. Porter service is available for large furniture; bring blankets or moving supplies if you plan to take sizable pieces.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">House rules</h4>
+                  <p>No large bags in the main salons; children are welcome under supervision. Numbers may be issued at opening on busy mornings—arrive early for the best selection of silver and smalls.</p>
+                </div>
+              </div>
+            </div>
             <div class="event-tags">
               <span class="tag">Silver</span>
               <span class="tag">Furniture</span>
@@ -67,22 +97,39 @@
               <span class="tag">Glass</span>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div class="event-card">
+        <article class="event-card" tabindex="0" role="button" aria-haspopup="dialog" data-event-month="apr">
           <div class="event-card-date">
             <div class="month">Apr</div>
             <div class="day">26</div>
             <div class="year">2026</div>
           </div>
           <div class="event-card-body">
+            <p class="event-card-hint">View full details</p>
             <h3>Bellhaven Manor Dispersal</h3>
             <div class="event-meta">
-              <span>📍 Kennett Square, PA</span>
-              <span>🕙 10am – 3pm · Saturday only</span>
-              <span>🏷 In-Person</span>
+              <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> Kennett Square, PA</span>
+              <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> 10am – 3pm · Saturday only</span>
+              <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> In-Person</span>
             </div>
-            <p>The contents of a meticulously kept 1920s manor house, furnished entirely in the Art Deco style its original owners loved. Expect custom-built ebonised case pieces, at least four signed Tiffany-style lamps, an extensive collection of vintage costume jewellery including signed pieces by Miriam Haskell and Coro, and an elegant 2,000-volume personal library spanning travel, natural history, and the decorative arts.</p>
+            <p class="event-card-lead">The contents of a meticulously kept 1920s manor house, furnished entirely in the Art Deco style its original owners loved. Expect custom-built ebonised case pieces, at least four signed Tiffany-style lamps, an extensive collection of vintage costume jewellery including signed pieces by Miriam Haskell and Coro, and an elegant 2,000-volume personal library spanning travel, natural history, and the decorative arts.</p>
+            <div class="event-card-extras" aria-hidden="true">
+              <div class="event-extra-grid">
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Parking &amp; arrival</h4>
+                  <p>Park in the marked visitor bays along the west lawn. Follow the gravel path to the side entrance—this sale concentrates on the ground floor and lower gallery for easier flow.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Payment &amp; packing</h4>
+                  <p>Cash, card, and bank check welcome. A volunteer desk can hold purchases while you continue browsing; jewellery cases are staffed at all times.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">House rules</h4>
+                  <p>Single-day sale with continuous admission; no preview day. Flash photography in the lamp gallery is politely declined to protect iridescent finishes.</p>
+                </div>
+              </div>
+            </div>
             <div class="event-tags">
               <span class="tag">Art Deco</span>
               <span class="tag">Jewellery</span>
@@ -90,22 +137,39 @@
               <span class="tag">Books</span>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div class="event-card">
+        <article class="event-card" tabindex="0" role="button" aria-haspopup="dialog" data-event-month="may">
           <div class="event-card-date">
             <div class="month">May</div>
             <div class="day">10</div>
             <div class="year">2026</div>
           </div>
           <div class="event-card-body">
+            <p class="event-card-hint">View full details</p>
             <h3>The Merriweather Estate</h3>
             <div class="event-meta">
-              <span>📍 Media, PA</span>
-              <span>🕘 9am – 5pm · Sat &amp; Sun</span>
-              <span>🏷 In-Person</span>
+              <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> Media, PA</span>
+              <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> 9am – 5pm · Sat &amp; Sun</span>
+              <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> In-Person</span>
             </div>
-            <p>Three generations of passionate collectors come together in this major two-day event. The Merriweather family amassed a formidable collection spanning Asian export porcelain from the 17th–19th centuries, a gallery of ancestor and landscape oil portraits, full Victorian parlour furniture suites in horsehair and mahogany, and a walled garden's worth of cast-iron and limestone statuary. Not to be missed.</p>
+            <p class="event-card-lead">Three generations of passionate collectors come together in this major two-day event. The Merriweather family amassed a formidable collection spanning Asian export porcelain from the 17th–19th centuries, a gallery of ancestor and landscape oil portraits, full Victorian parlour furniture suites in horsehair and mahogany, and a walled garden's worth of cast-iron and limestone statuary. Not to be missed.</p>
+            <div class="event-card-extras" aria-hidden="true">
+              <div class="event-extra-grid">
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Parking &amp; arrival</h4>
+                  <p>Shuttle carts run from overflow parking at the parish lot three blocks south on Saturday peak hours. Garden statuary may be viewed outdoors weather permitting—wear sensible footwear.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Payment &amp; packing</h4>
+                  <p>We accept cash, card, and wire for high-value porcelain lots. Crating partners are on call Sunday afternoon for larger garden pieces.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">House rules</h4>
+                  <p>Two full days; Sunday often sees the best availability on case furniture. Food and drink remain outside on the stone terrace.</p>
+                </div>
+              </div>
+            </div>
             <div class="event-tags">
               <span class="tag">Porcelain</span>
               <span class="tag">Paintings</span>
@@ -114,22 +178,39 @@
               <span class="tag">Furniture</span>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div class="event-card">
+        <article class="event-card" tabindex="0" role="button" aria-haspopup="dialog" data-event-month="may">
           <div class="event-card-date">
             <div class="month">May</div>
             <div class="day">24</div>
             <div class="year">2026</div>
           </div>
           <div class="event-card-body">
+            <p class="event-card-hint">View full details</p>
             <h3>West Chester Collector's Clearance</h3>
             <div class="event-meta">
-              <span>📍 West Chester, PA</span>
-              <span>🕘 9am – 3pm · Saturday only</span>
-              <span>🏷 In-Person</span>
+              <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> West Chester, PA</span>
+              <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> 9am – 3pm · Saturday only</span>
+              <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> In-Person</span>
             </div>
-            <p>A focused single-day sale from the estate of a retired university professor with decades of focused collecting in maps, antiquarian books, scientific instruments, and vintage photography. Highlights include a folio of hand-coloured 18th-century maps, a collection of 19th-century stereographs, and an outstanding group of early astronomical instruments in original fitted cases.</p>
+            <p class="event-card-lead">A focused single-day sale from the estate of a retired university professor with decades of focused collecting in maps, antiquarian books, scientific instruments, and vintage photography. Highlights include a folio of hand-coloured 18th-century maps, a collection of 19th-century stereographs, and an outstanding group of early astronomical instruments in original fitted cases.</p>
+            <div class="event-card-extras" aria-hidden="true">
+              <div class="event-extra-grid">
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Parking &amp; arrival</h4>
+                  <p>Municipal garage two blocks east offers validated parking with any purchase over $100—ask at the registration desk. The sale occupies the town house library and upper study.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Payment &amp; packing</h4>
+                  <p>Cash and card preferred for paper ephemera; personal checks accepted from established clients. Gloves are provided for handling loose atlas plates.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">House rules</h4>
+                  <p>Compact, scholarly sale—please keep voices low in instrument rooms. No backpacks; lockers available in the hall.</p>
+                </div>
+              </div>
+            </div>
             <div class="event-tags">
               <span class="tag">Maps</span>
               <span class="tag">Books</span>
@@ -137,22 +218,39 @@
               <span class="tag">Photography</span>
             </div>
           </div>
-        </div>
+        </article>
 
-        <div class="event-card">
+        <article class="event-card" tabindex="0" role="button" aria-haspopup="dialog" data-event-month="jun">
           <div class="event-card-date">
             <div class="month">Jun</div>
             <div class="day">7</div>
             <div class="year">2026</div>
           </div>
           <div class="event-card-body">
+            <p class="event-card-hint">View full details</p>
             <h3>The Ashford Park Auction Preview</h3>
             <div class="event-meta">
-              <span>📍 Wilmington, DE</span>
-              <span>🕙 10am – 4pm · Preview Only</span>
-              <span>🏷 Preview Event</span>
+              <span><img src="assets/icons/map-pin.svg" alt="" class="event-meta-icon" width="14" height="14" /> Wilmington, DE</span>
+              <span><img src="assets/icons/clock.svg" alt="" class="event-meta-icon" width="14" height="14" /> 10am – 4pm · Preview Only</span>
+              <span><img src="assets/icons/tag.svg" alt="" class="event-meta-icon" width="14" height="14" /> Preview Event</span>
             </div>
-            <p>A special preview event for our summer auction partnership with Ashford Park Auction House. View items in person before online bidding opens on June 14th. Catalogue available at the door. Highlights include a documented Quaker furniture suite from Chester County, important Delaware silver, and a group of early Pennsylvania watercolours.</p>
+            <p class="event-card-lead">A special preview event for our summer auction partnership with Ashford Park Auction House. View items in person before online bidding opens on June 14th. Catalogue available at the door. Highlights include a documented Quaker furniture suite from Chester County, important Delaware silver, and a group of early Pennsylvania watercolours.</p>
+            <div class="event-card-extras" aria-hidden="true">
+              <div class="event-extra-grid">
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Parking &amp; arrival</h4>
+                  <p>Valet and self-park lanes at the auction house main entrance. This is a preview day only—no sales transactions on site; staff can register you for absentee and online bidding.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">Catalogue &amp; registration</h4>
+                  <p>Printed catalogues while supplies last; digital copies scan at the lobby kiosks. Condition reports may be requested at the specialist desk for Delaware silver and furniture lots.</p>
+                </div>
+                <div class="event-extra-block">
+                  <h4 class="event-extra-label">House rules</h4>
+                  <p>Touching of framed works is limited to staff assistance. Online bidding for this sale opens June 14, 2026—see Ashford Park's site for real-time schedules.</p>
+                </div>
+              </div>
+            </div>
             <div class="event-tags">
               <span class="tag">Preview</span>
               <span class="tag">Auction</span>
@@ -160,20 +258,33 @@
               <span class="tag">Silver</span>
             </div>
           </div>
-        </div>
+        </article>
 
       </div>
 
-      <div style="text-align:center;margin-top:4rem;padding:2.5rem;border:1px solid rgba(201,151,58,.25);background:var(--deep);">
+      <div class="events-cta-panel">
         <p class="section-label">Stay Informed</p>
-        <h3 style="font-family:var(--font-display);font-size:1.6rem;color:var(--cream);margin-bottom:.75rem;font-weight:400;">Never Miss a Sale</h3>
-        <p style="color:var(--warm-gray);margin-bottom:1.5rem;font-size:.95rem;">Join our mailing list to receive advance notice of upcoming estate sales, preview access, and occasional offerings from our online store.</p>
+        <h3 class="events-cta-title">Never Miss a Sale</h3>
+        <p class="events-cta-text">Join our mailing list to receive advance notice of upcoming estate sales, preview access, and occasional offerings from our online store.</p>
         <a href="contact.html" class="btn">Join the Mailing List</a>
       </div>
 
     </div>
   </section>
 
+</div>
+
+<div class="event-modal" data-event-modal hidden aria-modal="true" role="dialog" aria-labelledby="event-modal-title">
+  <div class="event-modal-backdrop" data-event-modal-close tabindex="-1" aria-hidden="true"></div>
+  <div class="event-modal-panel">
+    <button type="button" class="event-modal-close" data-event-modal-close aria-label="Close event details">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="event-modal-header" data-event-modal-header></div>
+    <div class="event-modal-scroll">
+      <div class="event-modal-inner" data-event-modal-content></div>
+    </div>
+  </div>
 </div>
 
 <footer>

@@ -1,10 +1,22 @@
 const CART_STORAGE_KEY = "danas_estate_cart_v1";
 
+const ADD_TO_CART_LABEL = "Add to Cart";
+const ADDED_TO_CART_LABEL = "Added to Cart";
+
 function loadCart() {
   try {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed
+      .filter((item) => item && typeof item.id === "string" && item.id.length > 0)
+      .map((item) => ({
+        ...item,
+        price: Number(item.price) || 0,
+        quantity: 1
+      }));
   } catch (error) {
     return [];
   }
@@ -35,20 +47,49 @@ function updateCartBadge() {
   document.querySelectorAll("[data-cart-count]").forEach((badge) => {
     badge.textContent = String(count);
   });
+  const mobileLabel = count > 99 ? "99+" : String(count);
+  document.querySelectorAll("[data-nav-cart-badge]").forEach((badge) => {
+    badge.textContent = mobileLabel;
+    badge.classList.toggle("is-visible", count > 0);
+    badge.setAttribute("aria-hidden", count > 0 ? "false" : "true");
+  });
 }
 
-function upsertCartItem(product, quantityToAdd) {
+function tryAddUniqueCartItem(product) {
   const cart = loadCart();
-  const existing = cart.find((item) => item.id === product.id);
-
-  if (existing) {
-    existing.quantity += quantityToAdd;
-  } else {
-    cart.push({ ...product, quantity: quantityToAdd });
+  if (cart.some((item) => item.id === product.id)) {
+    return false;
   }
-
+  cart.push({ ...product, quantity: 1 });
   saveCart(cart);
   updateCartBadge();
+  return true;
+}
+
+function setAddToCartButtonState(button, inCart) {
+  button.textContent = inCart ? ADDED_TO_CART_LABEL : ADD_TO_CART_LABEL;
+  button.disabled = inCart;
+  button.classList.toggle("is-in-cart", inCart);
+}
+
+function syncStoreCartButtonsFromCart() {
+  const cart = loadCart();
+  const ids = new Set(cart.map((item) => item.id));
+  document.querySelectorAll(".items-grid .item-card").forEach((card) => {
+    const id = card.dataset.id;
+    if (!id) {
+      return;
+    }
+    const btn = card.querySelector(".add-to-cart-btn");
+    if (btn) {
+      setAddToCartButtonState(btn, ids.has(id));
+    }
+  });
+  const modal = document.querySelector("[data-store-modal]");
+  const modalBtn = modal?.querySelector(".store-modal-body .add-to-cart-btn");
+  if (modal && !modal.hidden && modalBtn?.dataset.productId) {
+    setAddToCartButtonState(modalBtn, ids.has(modalBtn.dataset.productId));
+  }
 }
 
 function setCartMessage(message, isError = false) {
@@ -111,7 +152,8 @@ function initStoreFilters() {
 
 function buildProductFromCard(card) {
   const title = card.querySelector("h3");
-  const description = card.querySelector(".item-body p");
+  const description =
+    card.querySelector(".item-body h3 + p") ?? card.querySelector(".item-body p");
   const category = card.querySelector(".item-category");
   const priceCents = Number(card.dataset.priceCents);
   const id = card.dataset.id;
@@ -136,7 +178,8 @@ function initStoreCartButtons() {
   }
 
   addButtons.forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
       const card = button.closest(".item-card");
       if (!card) {
         return;
@@ -148,7 +191,12 @@ function initStoreCartButtons() {
         return;
       }
 
-      upsertCartItem(product, 1);
+      if (!tryAddUniqueCartItem(product)) {
+        setCartMessage(`"${product.name}" is already in your cart.`, true);
+        return;
+      }
+      setAddToCartButtonState(button, true);
+      syncStoreCartButtonsFromCart();
       setCartMessage(`Added "${product.name}" to your cart.`);
     });
   });
@@ -198,9 +246,8 @@ function renderCartPage() {
         </div>
         <div class="cart-item-controls">
           <div class="qty-controls">
-            <button type="button" data-action="decrease" data-id="${item.id}" aria-label="Decrease quantity">-</button>
+            <button type="button" data-action="decrease" data-id="${item.id}" aria-label="Remove item">-</button>
             <span>${item.quantity}</span>
-            <button type="button" data-action="increase" data-id="${item.id}" aria-label="Increase quantity">+</button>
           </div>
           <div class="cart-item-price">${formatPrice(item.price * item.quantity)}</div>
           <button type="button" class="text-link" data-action="remove" data-id="${item.id}">Remove</button>
@@ -230,9 +277,6 @@ function renderCartPage() {
       .map((item) => {
         if (item.id !== id) {
           return item;
-        }
-        if (action === "increase") {
-          return { ...item, quantity: item.quantity + 1 };
         }
         if (action === "decrease") {
           return { ...item, quantity: item.quantity - 1 };
@@ -335,10 +379,404 @@ function initSuccessPage() {
   updateCartBadge();
 }
 
+function buildStoreGallery(headerEl, imageSrc, slideCount) {
+  const count = Math.max(1, slideCount);
+  const wrap = document.createElement("div");
+  wrap.className = "store-gallery";
+  wrap.setAttribute("role", "region");
+  wrap.setAttribute("aria-label", "Item images");
+  wrap.tabIndex = -1;
+
+  const viewport = document.createElement("div");
+  viewport.className = "store-gallery-viewport";
+
+  const track = document.createElement("div");
+  track.className = "store-gallery-track";
+
+  for (let i = 0; i < count; i += 1) {
+    const slide = document.createElement("div");
+    slide.className = "store-gallery-slide";
+    const img = document.createElement("img");
+    img.src = imageSrc;
+    img.alt = "";
+    img.width = 72;
+    img.height = 72;
+    slide.appendChild(img);
+    track.appendChild(slide);
+  }
+
+  viewport.appendChild(track);
+
+  const prev = document.createElement("button");
+  prev.type = "button";
+  prev.className = "store-gallery-nav store-gallery-prev";
+  prev.setAttribute("aria-label", "Previous image");
+  prev.textContent = "\u2039";
+
+  const next = document.createElement("button");
+  next.type = "button";
+  next.className = "store-gallery-nav store-gallery-next";
+  next.setAttribute("aria-label", "Next image");
+  next.textContent = "\u203a";
+
+  viewport.appendChild(prev);
+  viewport.appendChild(next);
+
+  const dots = document.createElement("div");
+  dots.className = "store-gallery-dots";
+
+  for (let i = 0; i < count; i += 1) {
+    const dot = document.createElement("button");
+    dot.type = "button";
+    dot.className = "store-gallery-dot";
+    dot.setAttribute("aria-label", `Image ${i + 1} of ${count}`);
+    dot.dataset.index = String(i);
+    dots.appendChild(dot);
+  }
+
+  const status = document.createElement("p");
+  status.className = "store-gallery-status";
+  status.setAttribute("aria-live", "polite");
+
+  wrap.appendChild(viewport);
+  wrap.appendChild(dots);
+  wrap.appendChild(status);
+
+  headerEl.appendChild(wrap);
+
+  let index = 0;
+
+  function update() {
+    track.style.transform = `translateX(-${index * 100}%)`;
+    if (count <= 1) {
+      prev.hidden = true;
+      next.hidden = true;
+      dots.hidden = true;
+      status.textContent = "";
+      return;
+    }
+    prev.hidden = false;
+    next.hidden = false;
+    dots.hidden = false;
+    prev.disabled = index <= 0;
+    next.disabled = index >= count - 1;
+    status.textContent = `Image ${index + 1} of ${count}`;
+    dots.querySelectorAll(".store-gallery-dot").forEach((dot, i) => {
+      const on = i === index;
+      dot.classList.toggle("is-active", on);
+      if (on) {
+        dot.setAttribute("aria-current", "true");
+      } else {
+        dot.removeAttribute("aria-current");
+      }
+    });
+  }
+
+  function go(delta) {
+    const nextIndex = index + delta;
+    if (nextIndex < 0 || nextIndex >= count) {
+      return;
+    }
+    index = nextIndex;
+    update();
+  }
+
+  prev.addEventListener("click", (e) => {
+    e.stopPropagation();
+    go(-1);
+  });
+  next.addEventListener("click", (e) => {
+    e.stopPropagation();
+    go(1);
+  });
+  dots.addEventListener("click", (e) => {
+    const target = e.target;
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
+    const dot = target.closest(".store-gallery-dot");
+    if (!dot) {
+      return;
+    }
+    e.stopPropagation();
+    const i = Number.parseInt(dot.dataset.index || "0", 10);
+    if (!Number.isNaN(i) && i >= 0 && i < count) {
+      index = i;
+      update();
+    }
+  });
+
+  wrap.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      go(-1);
+    } else if (e.key === "ArrowRight") {
+      e.preventDefault();
+      go(1);
+    }
+  });
+
+  update();
+}
+
+function initStoreModal() {
+  const modal = document.querySelector("[data-store-modal]");
+  const modalContent = document.querySelector("[data-store-modal-content]");
+  const modalHeader = document.querySelector("[data-store-modal-header]");
+  if (!modal || !modalContent || !modalHeader) {
+    return;
+  }
+
+  const cards = document.querySelectorAll(".items-grid .item-card");
+  const closeTriggers = modal.querySelectorAll("[data-store-modal-close]");
+  let lastFocused = null;
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.removeProperty("overflow");
+    modalHeader.replaceChildren();
+    modalContent.replaceChildren();
+    if (lastFocused && document.body.contains(lastFocused)) {
+      lastFocused.focus();
+    }
+    lastFocused = null;
+  }
+
+  function openModal(card) {
+    const titleEl = card.querySelector(".item-body h3");
+    const categoryEl = card.querySelector(".item-category");
+    const descriptionEl = card.querySelector(".item-body h3 + p");
+    const priceEl = card.querySelector(".item-price");
+    const iconEl = card.querySelector(".item-placeholder-icon");
+    const priceCents = Number(card.dataset.priceCents);
+
+    if (!titleEl || !categoryEl || !descriptionEl || !Number.isInteger(priceCents) || priceCents <= 0) {
+      return;
+    }
+
+    lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    modalHeader.replaceChildren();
+    modalContent.replaceChildren();
+
+    const imageSrc = iconEl?.getAttribute("src") || "assets/icons/image.svg";
+    const slideCount = Math.max(1, Number.parseInt(card.dataset.imageCount || "4", 10) || 4);
+    buildStoreGallery(modalHeader, imageSrc, slideCount);
+
+    const right = document.createElement("div");
+    right.className = "event-modal-body store-modal-body";
+
+    const heading = document.createElement("h2");
+    heading.id = "store-modal-title";
+    heading.className = "event-modal-heading";
+    heading.textContent = titleEl.textContent.trim();
+
+    const categoryClone = categoryEl.cloneNode(true);
+
+    const leadP = document.createElement("p");
+    leadP.className = "event-modal-lead store-modal-description";
+    leadP.textContent = descriptionEl.textContent.trim();
+
+    const priceRow = document.createElement("div");
+    priceRow.className = "store-modal-price";
+    priceRow.textContent = priceEl ? priceEl.textContent.trim() : formatPrice(priceCents);
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "add-to-cart-btn";
+    addBtn.dataset.productId = card.dataset.id || "";
+    addBtn.textContent = ADD_TO_CART_LABEL;
+    const alreadyInCart = loadCart().some((item) => item.id === card.dataset.id);
+    setAddToCartButtonState(addBtn, alreadyInCart);
+    addBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const product = buildProductFromCard(card);
+      if (!product) {
+        setCartMessage("Could not add item to cart. Please try again.", true);
+        return;
+      }
+      if (!tryAddUniqueCartItem(product)) {
+        setCartMessage(`"${product.name}" is already in your cart.`, true);
+        return;
+      }
+      setAddToCartButtonState(addBtn, true);
+      syncStoreCartButtonsFromCart();
+      setCartMessage(`Added "${product.name}" to your cart.`);
+    });
+
+    right.appendChild(heading);
+    right.appendChild(categoryClone);
+    right.appendChild(leadP);
+    right.appendChild(priceRow);
+    right.appendChild(addBtn);
+
+    modalContent.appendChild(right);
+
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+
+    modal.querySelector(".event-modal-close")?.focus();
+  }
+
+  cards.forEach((card) => {
+    card.addEventListener("click", (e) => {
+      if (e.target instanceof HTMLElement && e.target.closest(".add-to-cart-btn")) {
+        return;
+      }
+      openModal(card);
+    });
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        if (event.target instanceof HTMLElement && event.target.closest(".add-to-cart-btn")) {
+          return;
+        }
+        event.preventDefault();
+        openModal(card);
+      }
+    });
+  });
+
+  closeTriggers.forEach((el) => {
+    el.addEventListener("click", closeModal);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
+}
+
+function initEventsPage() {
+  const modal = document.querySelector("[data-event-modal]");
+  const modalContent = document.querySelector("[data-event-modal-content]");
+  const modalHeader = modal?.querySelector("[data-event-modal-header]");
+  if (!modal || !modalContent || !modalHeader) {
+    return;
+  }
+
+  const cards = document.querySelectorAll(".events-list .event-card");
+  const closeTriggers = modal.querySelectorAll("[data-event-modal-close]");
+  let lastFocused = null;
+
+  function closeModal() {
+    modal.hidden = true;
+    document.body.style.removeProperty("overflow");
+    modalHeader.replaceChildren();
+    modalContent.replaceChildren();
+    if (lastFocused && document.body.contains(lastFocused)) {
+      lastFocused.focus();
+    }
+    lastFocused = null;
+  }
+
+  function openModal(card) {
+    const dateEl = card.querySelector(".event-card-date");
+    const body = card.querySelector(".event-card-body");
+    const titleEl = body?.querySelector("h3");
+    const meta = body?.querySelector(".event-meta");
+    const lead = body?.querySelector(".event-card-lead");
+    const extras = body?.querySelector(".event-card-extras");
+    const tags = body?.querySelector(".event-tags");
+
+    if (!dateEl || !body || !titleEl || !meta || !lead) {
+      return;
+    }
+
+    lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+
+    modalHeader.replaceChildren();
+    modalContent.innerHTML = "";
+
+    const dateClone = dateEl.cloneNode(true);
+    modalHeader.appendChild(dateClone);
+
+    const right = document.createElement("div");
+    right.className = "event-modal-body";
+
+    const heading = document.createElement("h2");
+    heading.id = "event-modal-title";
+    heading.className = "event-modal-heading";
+    heading.textContent = titleEl.textContent.trim();
+
+    const metaClone = meta.cloneNode(true);
+
+    const leadP = document.createElement("p");
+    leadP.className = "event-modal-lead";
+    leadP.textContent = lead.textContent.trim();
+
+    right.appendChild(heading);
+    right.appendChild(metaClone);
+    right.appendChild(leadP);
+
+    if (extras) {
+      const ornament = document.createElement("div");
+      ornament.className = "event-modal-ornament";
+      ornament.innerHTML =
+        '<span class="ornament-mark" aria-hidden="true"><img src="assets/icons/star.svg" alt="" width="14" height="14" /></span>';
+      const hint = document.createElement("p");
+      hint.className = "event-modal-hint";
+      hint.textContent = "Practical details";
+      right.appendChild(ornament);
+      right.appendChild(hint);
+      const extrasClone = extras.cloneNode(true);
+      extrasClone.removeAttribute("aria-hidden");
+      right.appendChild(extrasClone);
+    }
+
+    if (tags) {
+      right.appendChild(tags.cloneNode(true));
+    }
+
+    modalContent.appendChild(right);
+
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+
+    modal.querySelector(".event-modal-close")?.focus();
+  }
+
+  cards.forEach((card) => {
+    card.addEventListener("click", () => openModal(card));
+    card.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openModal(card);
+      }
+    });
+  });
+
+  closeTriggers.forEach((el) => {
+    el.addEventListener("click", closeModal);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !modal.hidden) {
+      closeModal();
+    }
+  });
+
+  const filterButtons = document.querySelectorAll(".events-filter-btn");
+  filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      filterButtons.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+      const month = button.dataset.eventsMonth || "all";
+      cards.forEach((card) => {
+        const cardMonth = card.dataset.eventMonth || "";
+        card.style.display = month === "all" || cardMonth === month ? "" : "none";
+      });
+    });
+  });
+}
+
 initMobileNav();
 initActiveNavLink();
 initStoreFilters();
 initStoreCartButtons();
+initStoreModal();
+syncStoreCartButtonsFromCart();
 renderCartPage();
 initSuccessPage();
+initEventsPage();
 updateCartBadge();
