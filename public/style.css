@@ -1616,6 +1616,14 @@ footer {
     min-width: 0;
     align-items: flex-start;
   }
+
+  /* Home hero: avoid vertical centering on short viewports — too much empty space under sticky nav */
+  .hero {
+    align-items: flex-start;
+  }
+  .hero-inner {
+    padding: 1.35rem 1.25rem 2.5rem;
+  }
 }
 
 /* ---- Admin dashboard -------------------------------------- */
