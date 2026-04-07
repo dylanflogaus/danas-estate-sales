@@ -1,20 +1,20 @@
 /* ============================================================
-   Dana's Estate Sales — Art Deco / Warm Dark Theme
+   Dana's Estate Sales — Art Deco / Forest Green Theme
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Josefin+Sans:wght@300;400;600&display=swap');
 
 /* ---- Custom Properties ------------------------------------ */
 :root {
-  --ink:       #1a1209;
-  --deep:      #231a0e;
-  --mahogany:  #3b1f0e;
-  --sienna:    #7a3b1e;
+  --ink:       #06140e;
+  --deep:      #0c2218;
+  --mahogany:  #0e3d28;
+  --sienna:    #1a7a56;
   --gold:      #c9973a;
   --gold-lt:   #e4b96a;
   --cream:     #f5ead6;
   --parchment: #ede0c4;
-  --warm-gray: #8a7a66;
+  --warm-gray: #6a8c7c;
   --ruby:      #7b2133;
 
   --font-display: 'Playfair Display', Georgia, serif;
@@ -247,7 +247,7 @@ nav {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(122,59,30,.35) 0%, transparent 70%),
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0,90,49,.35) 0%, transparent 70%),
     url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c9973a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 .hero-inner {
@@ -530,7 +530,7 @@ section { padding: 6rem 2rem; }
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, transparent 60%, rgba(26,18,9,.5));
+  background: linear-gradient(to bottom, transparent 60%, rgba(6,20,14,.5));
 }
 .item-badge {
   position: absolute;
@@ -610,13 +610,13 @@ section { padding: 6rem 2rem; }
   opacity: 0.88;
   border-color: rgba(201, 151, 58, 0.28);
   color: var(--warm-gray);
-  background: rgba(26, 18, 9, 0.55);
+  background: rgba(6, 20, 14, 0.55);
 }
 .add-to-cart-btn:disabled:hover,
 .add-to-cart-btn.is-in-cart:hover {
   border-color: rgba(201, 151, 58, 0.28);
   color: var(--warm-gray);
-  background: rgba(26, 18, 9, 0.55);
+  background: rgba(6, 20, 14, 0.55);
 }
 .store-actions {
   margin-top: 2rem;
@@ -1009,7 +1009,7 @@ section { padding: 6rem 2rem; }
   justify-content: center;
   padding: var(--event-modal-gutter);
   box-sizing: border-box;
-  background: rgba(26, 18, 9, 0.28);
+  background: rgba(6, 20, 14, 0.28);
 }
 .event-modal[hidden] {
   display: none !important;
@@ -1017,7 +1017,7 @@ section { padding: 6rem 2rem; }
 .event-modal-backdrop {
   position: absolute;
   inset: var(--event-modal-gutter);
-  background: rgba(26, 18, 9, 0.45);
+  background: rgba(6, 20, 14, 0.45);
   backdrop-filter: blur(2px);
   cursor: pointer;
 }
@@ -1241,7 +1241,7 @@ section { padding: 6rem 2rem; }
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(201, 151, 58, 0.45);
-  background: rgba(26, 18, 9, 0.65);
+  background: rgba(6, 20, 14, 0.65);
   color: var(--gold);
   font-family: var(--font-display);
   font-size: 1.35rem;
@@ -1253,7 +1253,7 @@ section { padding: 6rem 2rem; }
 .store-gallery-nav:hover:not(:disabled) {
   border-color: var(--gold);
   color: var(--gold-lt);
-  background: rgba(26, 18, 9, 0.85);
+  background: rgba(6, 20, 14, 0.85);
 }
 .store-gallery-nav:disabled {
   opacity: 0.35;
@@ -1663,7 +1663,7 @@ footer {
   color: #e8a0a8;
 }
 .admin-card {
-  background: rgba(26, 18, 9, 0.65);
+  background: rgba(6, 20, 14, 0.65);
   border: 1px solid rgba(201, 151, 58, 0.2);
   border-radius: 4px;
   padding: 2rem;
@@ -1763,7 +1763,7 @@ footer {
   color: #e8a0a8 !important;
 }
 .admin-form-card {
-  background: rgba(26, 18, 9, 0.55);
+  background: rgba(6, 20, 14, 0.55);
   border: 1px solid rgba(201, 151, 58, 0.2);
   border-radius: 4px;
   padding: 2rem;
