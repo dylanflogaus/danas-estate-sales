@@ -11,8 +11,11 @@
 
 <header class="admin-header">
   <div class="admin-header-inner">
-    <h1 class="admin-title">Site admin</h1>
-    <p class="admin-subtitle">Manage store products and public events</p>
+    <a href="store.html" class="admin-back-to-site">← Back to main site</a>
+    <div class="admin-header-text">
+      <h1 class="admin-title">Site admin</h1>
+      <p class="admin-subtitle">Manage store products and public events</p>
+    </div>
   </div>
 </header>
 
@@ -64,19 +67,51 @@
         <h3 data-admin-product-form-title>New product</h3>
         <form class="admin-form admin-form-grid" data-admin-product-form>
           <input type="hidden" name="editingId" value="" />
-          <label class="admin-label">Id (slug) <input name="id" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" /></label>
-          <label class="admin-label">Name <input name="name" required class="admin-input" /></label>
-          <label class="admin-label">Description <textarea name="description" rows="3" class="admin-input"></textarea></label>
-          <label class="admin-label">Price (cents) <input name="price_cents" type="number" min="1" step="1" required class="admin-input" /></label>
-          <label class="admin-label">Category slug <input name="category_slug" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="lowercase slug" /></label>
-          <label class="admin-label">Category label <input name="category_label" required class="admin-input" /></label>
-          <label class="admin-label">Image count <input name="image_count" type="number" min="1" max="50" value="4" class="admin-input" /></label>
-          <label class="admin-label">Hero image URL <input name="hero_image_url" class="admin-input" placeholder="assets/icons/image.svg" /></label>
-          <label class="admin-label">Badge <input name="badge" class="admin-input" placeholder="Optional" /></label>
-          <label class="admin-label">Sort order <input name="sort_order" type="number" step="1" value="0" class="admin-input" /></label>
-          <label class="admin-label admin-check">
-            <input name="is_active" type="checkbox" checked /> Active (visible on store)
+          <label class="admin-label">
+            <span class="admin-label-heading">Id (slug)<span class="admin-field-info" title="Unique id used in links and the database. Lowercase letters, numbers, and hyphens only (example: vintage-lamp). Hard to change after the product is created." aria-label="Help: unique id used in links and the database. Lowercase letters, numbers, and hyphens only.">i</span></span>
+            <input name="id" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Unique id: lowercase, numbers, hyphens only." />
           </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Name<span class="admin-field-info" title="The product title shoppers see on the store, in the cart, and on the product page. Use a clear, short name." aria-label="Help: product title shown on the store, cart, and product page.">i</span></span>
+            <input name="name" required class="admin-input" title="Product title shown to customers." />
+          </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Description<span class="admin-field-info" title="Longer text on the product detail page: condition, size, brand, what is included, pickup notes, etc." aria-label="Help: longer description on the product page.">i</span></span>
+            <textarea name="description" rows="3" class="admin-input" title="Detailed description for the product page."></textarea>
+          </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Price (USD)<span class="admin-field-info" title="Price in US dollars before tax or shipping. This is the amount customers are charged for the item." aria-label="Help: US dollar price before tax or shipping.">i</span></span>
+            <input name="price_dollars" type="number" min="0.01" step="0.01" required class="admin-input" placeholder="19.99" title="US dollar amount." />
+          </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Category slug<span class="admin-field-info" title="Short code that groups this product with others in the store (example: furniture). Lowercase letters, numbers, hyphens only. Must line up with your category setup." aria-label="Help: category code, lowercase slug for grouping products.">i</span></span>
+            <input name="category_slug" required class="admin-input" pattern="[a-z0-9]+(-[a-z0-9]+)*" title="Category slug: lowercase, numbers, hyphens." />
+          </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Category label<span class="admin-field-info" title="Friendly category name visitors read (example: Furniture). Can use capitals and spaces." aria-label="Help: display name for the category.">i</span></span>
+            <input name="category_label" required class="admin-input" title="Category name shown to customers." />
+          </label>
+          <input type="hidden" name="image_urls_state" value="[]" />
+          <label class="admin-label">
+            <span class="admin-label-heading">Product images<span class="admin-field-info" title="Photos for the store. Save a new product once, then each file choice uploads immediately (max 20). First photo is the main catalog image." aria-label="Help: product photos; save new products first, then upload.">i</span></span>
+            <input name="product_images" type="file" accept="image/*,.heic,.heif" multiple class="admin-input" title="Upload image files from your device." />
+          </label>
+          <p class="admin-hint" data-admin-image-summary></p>
+          <div class="admin-product-previews" data-admin-product-previews aria-label="Photo previews"></div>
+          <button type="button" class="btn admin-btn-ghost admin-btn-small" data-admin-clear-images title="Remove all images from this product.">Clear all images</button>
+          <label class="admin-label">
+            <span class="admin-label-heading">Badge<span class="admin-field-info" title="Short tag on the catalog card, for example Sale or New. Leave empty if you do not want a badge." aria-label="Help: optional short label on catalog cards.">i</span></span>
+            <input name="badge" class="admin-input" placeholder="Optional" title="Optional badge text on catalog cards." />
+          </label>
+          <label class="admin-label">
+            <span class="admin-label-heading">Sort order<span class="admin-field-info" title="Numbers control order within a category: lower numbers appear first. Leave at 0 unless you need a custom sort." aria-label="Help: lower numbers list first in the category.">i</span></span>
+            <input name="sort_order" type="number" step="1" value="0" class="admin-input" title="Lower numbers sort first within the category." />
+          </label>
+          <label class="admin-label admin-check">
+            <input name="is_active" type="checkbox" checked title="When checked, the product appears in the store. Uncheck to hide without deleting." />
+            <span class="admin-label-heading">Active (visible on store)<span class="admin-field-info" title="Checked: product is shown in the store. Unchecked: hidden from shoppers but kept in admin so you can turn it back on." aria-label="Help: visibility in the store.">i</span></span>
+          </label>
+          <p class="admin-form-status" data-admin-product-status role="status" aria-live="polite"></p>
           <div class="admin-form-actions">
             <button type="submit" class="btn admin-btn-primary">Save</button>
             <button type="button" class="btn admin-btn-ghost" data-admin-product-cancel>Cancel</button>

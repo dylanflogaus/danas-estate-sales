@@ -49,6 +49,21 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
+/**
+ * Small centered “icon” treatment: empty hero, generic image.svg, or bundled
+ * assets/icons/*.svg (seed catalog). Not used for uploads / external photos.
+ */
+function isStoreIconOrPlaceholderSrc(src) {
+  if (!src || typeof src !== "string") {
+    return true;
+  }
+  const s = src.trim().split("?")[0].split("#")[0];
+  if (s === "assets/icons/image.svg" || s.endsWith("/assets/icons/image.svg")) {
+    return true;
+  }
+  return /assets\/icons\/[^/]+\.svg$/i.test(s);
+}
+
 function updateCartBadge() {
   const cart = loadCart();
   const count = getCartItemCount(cart);
@@ -110,7 +125,7 @@ function setCartMessage(message, isError = false) {
 }
 
 function initMobileNav() {
-  const toggle = document.querySelector(".nav-toggle");
+  const toggle = document.querySelector(".nav-menu-toggle");
   const links = document.querySelector(".nav-links");
 
   if (!toggle || !links) {
@@ -118,14 +133,16 @@ function initMobileNav() {
   }
 
   toggle.addEventListener("click", () => {
-    toggle.classList.toggle("open");
-    links.classList.toggle("open");
+    const open = toggle.classList.toggle("open");
+    links.classList.toggle("open", open);
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
   links.querySelectorAll("a").forEach((anchor) => {
     anchor.addEventListener("click", () => {
       toggle.classList.remove("open");
       links.classList.remove("open");
+      toggle.setAttribute("aria-expanded", "false");
     });
   });
 }
@@ -140,16 +157,35 @@ function initActiveNavLink() {
   });
 }
 
-function initStoreFilters() {
-  const bar = document.querySelector("[data-store-filters]");
-  if (!bar) {
-    return;
+function buildStoreCategoryFilterBar(barEl, products) {
+  const bySlug = new Map();
+  for (const p of products) {
+    const slug = p.category_slug;
+    if (!slug || bySlug.has(slug)) {
+      continue;
+    }
+    const label = (p.category_label && String(p.category_label).trim()) || slug;
+    bySlug.set(slug, label);
   }
-  const filterButtons = bar.querySelectorAll(".filter-btn");
-  if (!filterButtons.length) {
-    return;
+  const entries = [...bySlug.entries()].sort((a, b) => a[1].localeCompare(b[1], undefined, { sensitivity: "base" }));
+
+  barEl.replaceChildren();
+
+  function makeBtn(text, slug, active) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "filter-btn" + (active ? " active" : "");
+    b.dataset.cat = slug;
+    b.textContent = text;
+    return b;
   }
 
+  barEl.appendChild(makeBtn("All Items", "all", true));
+  for (const [slug, label] of entries) {
+    barEl.appendChild(makeBtn(label, slug, false));
+  }
+
+  const filterButtons = barEl.querySelectorAll(".filter-btn");
   filterButtons.forEach((button) => {
     button.addEventListener("click", () => {
       filterButtons.forEach((btn) => btn.classList.remove("active"));
@@ -197,13 +233,23 @@ function renderProductCards(grid, products) {
     card.dataset.id = p.id;
     card.dataset.priceCents = String(p.price_cents);
     card.dataset.imageCount = String(p.image_count ?? 4);
-    const imgSrc = p.hero_image_url || "assets/icons/image.svg";
+    const galleryUrls = Array.isArray(p.image_urls) && p.image_urls.length > 0 ? p.image_urls : null;
+    if (galleryUrls) {
+      card.dataset.productImageUrls = JSON.stringify(galleryUrls);
+    } else {
+      delete card.dataset.productImageUrls;
+    }
+    const imgSrc =
+      (galleryUrls && galleryUrls[0]) || p.hero_image_url || "assets/icons/image.svg";
+    const thumbClass = isStoreIconOrPlaceholderSrc(imgSrc)
+      ? "item-card-thumb item-card-thumb--icon"
+      : "item-card-thumb item-card-thumb--photo";
     const badgeHtml = p.badge
       ? `<span class="item-badge">${escapeHtml(p.badge)}</span>`
       : "";
     card.innerHTML = `
       <div class="item-img">
-        <img src="${escapeHtml(imgSrc)}" alt="" class="item-placeholder-icon" width="48" height="48" />
+        <img src="${escapeHtml(imgSrc)}" alt="" class="${thumbClass}" loading="lazy" />
         ${badgeHtml}
       </div>
       <div class="item-body">
@@ -236,6 +282,10 @@ async function bootstrapStorePage() {
     const data = await res.json();
     const products = Array.isArray(data.products) ? data.products : [];
     renderProductCards(grid, products);
+    const filterBar = document.querySelector("[data-store-filters]");
+    if (filterBar) {
+      buildStoreCategoryFilterBar(filterBar, products);
+    }
     if (status) {
       status.textContent = "";
     }
@@ -484,8 +534,12 @@ function initSuccessPage() {
   updateCartBadge();
 }
 
-function buildStoreGallery(headerEl, imageSrc, slideCount) {
-  const count = Math.max(1, slideCount);
+function buildStoreGallery(headerEl, imageSources) {
+  const sources =
+    Array.isArray(imageSources) && imageSources.length > 0
+      ? imageSources
+      : [typeof imageSources === "string" ? imageSources : "assets/icons/image.svg"];
+  const count = Math.max(1, sources.length);
   const wrap = document.createElement("div");
   wrap.className = "store-gallery";
   wrap.setAttribute("role", "region");
@@ -502,10 +556,12 @@ function buildStoreGallery(headerEl, imageSrc, slideCount) {
     const slide = document.createElement("div");
     slide.className = "store-gallery-slide";
     const img = document.createElement("img");
-    img.src = imageSrc;
+    const slideSrc = sources[i] || sources[0];
+    img.src = slideSrc;
     img.alt = "";
-    img.width = 72;
-    img.height = 72;
+    img.className = isStoreIconOrPlaceholderSrc(slideSrc)
+      ? "store-gallery-img store-gallery-img--placeholder"
+      : "store-gallery-img store-gallery-img--photo";
     slide.appendChild(img);
     track.appendChild(slide);
   }
@@ -551,8 +607,21 @@ function buildStoreGallery(headerEl, imageSrc, slideCount) {
 
   let index = 0;
 
+  function slideStepPx() {
+    const first = track.firstElementChild;
+    if (first instanceof HTMLElement) {
+      const w = first.getBoundingClientRect().width;
+      if (w > 0) {
+        return w;
+      }
+    }
+    return viewport.clientWidth || 0;
+  }
+
   function update() {
-    track.style.transform = `translateX(-${index * 100}%)`;
+    const step = slideStepPx();
+    track.style.transform =
+      step > 0 ? `translateX(-${Math.round(index * step)}px)` : "";
     if (count <= 1) {
       prev.hidden = true;
       next.hidden = true;
@@ -622,6 +691,7 @@ function buildStoreGallery(headerEl, imageSrc, slideCount) {
   });
 
   update();
+  requestAnimationFrame(() => update());
 }
 
 function ensureStoreModalShell() {
@@ -652,7 +722,7 @@ function ensureStoreModalShell() {
     const categoryEl = card.querySelector(".item-category");
     const descriptionEl = card.querySelector(".item-body h3 + p");
     const priceEl = card.querySelector(".item-price");
-    const iconEl = card.querySelector(".item-placeholder-icon");
+    const iconEl = card.querySelector(".item-card-thumb");
     const priceCents = Number(card.dataset.priceCents);
 
     if (!titleEl || !categoryEl || !descriptionEl || !Number.isInteger(priceCents) || priceCents <= 0) {
@@ -665,8 +735,24 @@ function ensureStoreModalShell() {
     modalContent.replaceChildren();
 
     const imageSrc = iconEl?.getAttribute("src") || "assets/icons/image.svg";
+    let gallerySources = null;
+    try {
+      const raw = card.dataset.productImageUrls;
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          gallerySources = parsed;
+        }
+      }
+    } catch {
+      gallerySources = null;
+    }
     const slideCount = Math.max(1, Number.parseInt(card.dataset.imageCount || "4", 10) || 4);
-    buildStoreGallery(modalHeader, imageSrc, slideCount);
+    const modalSources =
+      gallerySources && gallerySources.length > 0
+        ? gallerySources
+        : Array.from({ length: slideCount }, () => imageSrc);
+    buildStoreGallery(modalHeader, modalSources);
 
     const right = document.createElement("div");
     right.className = "event-modal-body store-modal-body";
@@ -1016,7 +1102,6 @@ function initEventsPage() {
 
 initMobileNav();
 initActiveNavLink();
-initStoreFilters();
 initStoreGridInteractions();
 if (document.querySelector("[data-dynamic-catalog]")) {
   void bootstrapStorePage();

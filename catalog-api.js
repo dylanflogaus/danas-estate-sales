@@ -77,7 +77,85 @@ async function requireAdmin(request, env) {
   return { db, token };
 }
 
+function parseProductImageUrls(row) {
+  try {
+    const parsed = JSON.parse(row.image_urls_json || "[]");
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((u) => typeof u === "string" && u.trim().length > 0);
+  } catch {
+    return [];
+  }
+}
+
+const MAX_GALLERY_IMAGES = 20;
+const MAX_IMAGE_URL_CHARS = 600_000;
+/** D1 max ~2 MB per cell; JSON must stay under this byte size (UTF-8). */
+const MAX_IMAGE_URLS_JSON_BYTES = 1_800_000;
+
+function isAllowedProductImageUrl(s) {
+  if (/^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(s)) {
+    return true;
+  }
+  if (/^https?:\/\//i.test(s)) {
+    return true;
+  }
+  if (s.startsWith("/") || /^[a-zA-Z0-9][a-zA-Z0-9/_-]*\//.test(s)) {
+    return true;
+  }
+  return false;
+}
+
+/** @returns {{ ok: true, urls: string[] } | { ok: false, error: string }} */
+function normalizeImageUrlsInput(raw) {
+  if (raw == null) {
+    return { ok: true, urls: [] };
+  }
+  if (!Array.isArray(raw)) {
+    return { ok: false, error: "image_urls must be an array." };
+  }
+  const urls = [];
+  for (const item of raw) {
+    if (urls.length >= MAX_GALLERY_IMAGES) {
+      break;
+    }
+    const s = String(item || "").trim();
+    if (!s) {
+      continue;
+    }
+    if (s.length > MAX_IMAGE_URL_CHARS) {
+      return {
+        ok: false,
+        error: `Each image may be at most ${MAX_IMAGE_URL_CHARS} characters (try smaller files or host images elsewhere).`
+      };
+    }
+    if (!isAllowedProductImageUrl(s)) {
+      return {
+        ok: false,
+        error: "Invalid image URL (use http(s), a site path like assets/photo.jpg, or an uploaded image)."
+      };
+    }
+    urls.push(s);
+  }
+  const json = JSON.stringify(urls);
+  const jsonBytes = new TextEncoder().encode(json).byteLength;
+  if (jsonBytes > MAX_IMAGE_URLS_JSON_BYTES) {
+    return {
+      ok: false,
+      error:
+        "All images combined are too large to store (database limit is about 1.8 MB per product). Use fewer photos, smaller files, or host images online and paste https links instead of uploading."
+    };
+  }
+  return { ok: true, urls };
+}
+
 function mapProductRow(row) {
+  const image_urls = parseProductImageUrls(row);
+  const fallbackHero = row.hero_image_url ? String(row.hero_image_url).trim() : "";
+  const hero = image_urls[0] || fallbackHero || null;
+  const image_count =
+    image_urls.length > 0 ? image_urls.length : Number(row.image_count) > 0 ? Number(row.image_count) : 4;
   return {
     id: row.id,
     name: row.name,
@@ -85,8 +163,9 @@ function mapProductRow(row) {
     price_cents: row.price_cents,
     category_slug: row.category_slug,
     category_label: row.category_label,
-    image_count: row.image_count,
-    hero_image_url: row.hero_image_url,
+    image_count,
+    hero_image_url: hero,
+    image_urls,
     badge: row.badge,
     sort_order: row.sort_order,
     is_active: row.is_active
@@ -133,7 +212,7 @@ async function handlePublicProducts(env) {
   const { results } = await db
     .prepare(
       `SELECT id, name, description, price_cents, category_slug, category_label,
-              image_count, hero_image_url, badge, sort_order, is_active
+              image_count, hero_image_url, image_urls_json, badge, sort_order, is_active
        FROM products WHERE is_active = 1
        ORDER BY sort_order ASC, id ASC`
     )
@@ -200,12 +279,18 @@ async function handleAdminListProducts(request, env) {
   const { results } = await r.db
     .prepare(
       `SELECT id, name, description, price_cents, category_slug, category_label,
-              image_count, hero_image_url, badge, sort_order, is_active,
+              image_count, hero_image_url, image_urls_json, badge, sort_order, is_active,
               created_at, updated_at
        FROM products ORDER BY sort_order ASC, id ASC`
     )
     .all();
-  return jsonResponse({ products: results || [] });
+  const products = (results || []).map((row) => {
+    const mapped = mapProductRow(row);
+    mapped.created_at = row.created_at;
+    mapped.updated_at = row.updated_at;
+    return mapped;
+  });
+  return jsonResponse({ products });
 }
 
 async function handleAdminGetProduct(request, env, id) {
@@ -216,7 +301,8 @@ async function handleAdminGetProduct(request, env, id) {
   const row = await r.db
     .prepare(
       `SELECT id, name, description, price_cents, category_slug, category_label,
-              image_count, hero_image_url, badge, sort_order, is_active, created_at, updated_at
+              image_count, hero_image_url, image_urls_json, badge, sort_order, is_active,
+              created_at, updated_at
        FROM products WHERE id = ?`
     )
     .bind(id)
@@ -224,7 +310,10 @@ async function handleAdminGetProduct(request, env, id) {
   if (!row) {
     return notFound();
   }
-  return jsonResponse({ product: row });
+  const product = mapProductRow(row);
+  product.created_at = row.created_at;
+  product.updated_at = row.updated_at;
+  return jsonResponse({ product });
 }
 
 function coerceProductPayload(body, { partial = false, existing = null } = {}) {
@@ -239,6 +328,7 @@ function coerceProductPayload(body, { partial = false, existing = null } = {}) {
         category_label: "",
         image_count: 4,
         hero_image_url: null,
+        image_urls_json: "[]",
         badge: null,
         sort_order: 0,
         is_active: 1
@@ -292,6 +382,23 @@ function coerceProductPayload(body, { partial = false, existing = null } = {}) {
       out.hero_image_url = s.length ? s : null;
     }
   }
+  if (!partial || "image_urls" in body) {
+    const norm = normalizeImageUrlsInput(body.image_urls);
+    if (!norm.ok) {
+      return { error: norm.error };
+    }
+    const urls = norm.urls;
+    out.image_urls_json = JSON.stringify(urls);
+    if (urls.length > 0) {
+      out.hero_image_url = urls[0];
+      out.image_count = urls.length;
+    } else if ("image_urls" in body) {
+      if (!("hero_image_url" in body)) {
+        out.hero_image_url = null;
+      }
+      out.image_count = 4;
+    }
+  }
   if (!partial || "badge" in body) {
     const b = body.badge;
     if (b == null || b === "") {
@@ -329,8 +436,8 @@ async function handleAdminCreateProduct(request, env) {
     await r.db
       .prepare(
         `INSERT INTO products (id, name, description, price_cents, category_slug, category_label,
-          image_count, hero_image_url, badge, sort_order, is_active, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
+          image_count, hero_image_url, image_urls_json, badge, sort_order, is_active, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`
       )
       .bind(
         p.id,
@@ -341,6 +448,7 @@ async function handleAdminCreateProduct(request, env) {
         p.category_label,
         p.image_count,
         p.hero_image_url,
+        p.image_urls_json,
         p.badge,
         p.sort_order,
         p.is_active
@@ -353,7 +461,88 @@ async function handleAdminCreateProduct(request, env) {
     }
     return jsonResponse({ error: msg }, 400);
   }
-  return jsonResponse({ product: p }, 201);
+  return jsonResponse({ product: mapProductRow(p) }, 201);
+}
+
+/**
+ * Append one image (data URL, https, or site path) to a product — saves immediately without full form submit.
+ */
+async function handleAdminAppendProductImage(request, env, id) {
+  const r = await requireAdmin(request, env);
+  if (r.error) {
+    return r.error;
+  }
+  if (request.method !== "POST") {
+    return methodNotAllowed();
+  }
+  const body = await readJson(request);
+  if (!body || typeof body.image_url !== "string") {
+    return jsonResponse({ error: "JSON body must include image_url (string)." }, 400);
+  }
+  const raw = String(body.image_url).trim();
+  if (!raw) {
+    return jsonResponse({ error: "image_url is empty." }, 400);
+  }
+
+  const existing = await r.db.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
+  if (!existing) {
+    return notFound();
+  }
+
+  const current = parseProductImageUrls(existing);
+  if (current.length >= MAX_GALLERY_IMAGES) {
+    return jsonResponse(
+      { error: `This product already has the maximum of ${MAX_GALLERY_IMAGES} images.` },
+      400
+    );
+  }
+
+  const one = normalizeImageUrlsInput([raw]);
+  if (!one.ok) {
+    return jsonResponse({ error: one.error }, 400);
+  }
+  if (one.urls.length !== 1) {
+    return jsonResponse({ error: "Invalid image_url." }, 400);
+  }
+
+  const next = [...current, one.urls[0]];
+  const all = normalizeImageUrlsInput(next);
+  if (!all.ok) {
+    return jsonResponse({ error: all.error }, 400);
+  }
+  if (all.urls.length !== next.length) {
+    return jsonResponse({ error: "Could not add image (validation failed)." }, 400);
+  }
+
+  const mergedJson = JSON.stringify(all.urls);
+  const hero = all.urls[0] ?? null;
+  try {
+    await r.db
+      .prepare(
+        `UPDATE products SET image_urls_json = ?, hero_image_url = ?, image_count = ?, updated_at = datetime('now') WHERE id = ?`
+      )
+      .bind(mergedJson, hero, all.urls.length, id)
+      .run();
+  } catch (e) {
+    const msg = e && typeof e === "object" && "message" in e ? String(e.message) : "Update failed.";
+    const lower = msg.toLowerCase();
+    if (lower.includes("too big") || lower.includes("too large") || lower.includes("limit")) {
+      return jsonResponse(
+        {
+          error:
+            "This image would make the product too large for storage. Use a smaller file or an https:// image link."
+        },
+        400
+      );
+    }
+    return jsonResponse({ error: msg }, 400);
+  }
+
+  const row = await r.db.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
+  const product = mapProductRow(row);
+  product.created_at = row.created_at;
+  product.updated_at = row.updated_at;
+  return jsonResponse({ product });
 }
 
 async function handleAdminPatchProduct(request, env, id) {
@@ -380,28 +569,48 @@ async function handleAdminPatchProduct(request, env, id) {
   if (p.id !== id) {
     return jsonResponse({ error: "Cannot change product id; delete and recreate instead." }, 400);
   }
-  await r.db
-    .prepare(
-      `UPDATE products SET name = ?, description = ?, price_cents = ?, category_slug = ?, category_label = ?,
-        image_count = ?, hero_image_url = ?, badge = ?, sort_order = ?, is_active = ?, updated_at = datetime('now')
+  try {
+    await r.db
+      .prepare(
+        `UPDATE products SET name = ?, description = ?, price_cents = ?, category_slug = ?, category_label = ?,
+        image_count = ?, hero_image_url = ?, image_urls_json = ?, badge = ?, sort_order = ?, is_active = ?,
+        updated_at = datetime('now')
        WHERE id = ?`
-    )
-    .bind(
-      p.name,
-      p.description,
-      p.price_cents,
-      p.category_slug,
-      p.category_label,
-      p.image_count,
-      p.hero_image_url,
-      p.badge,
-      p.sort_order,
-      p.is_active,
-      id
-    )
-    .run();
+      )
+      .bind(
+        p.name,
+        p.description,
+        p.price_cents,
+        p.category_slug,
+        p.category_label,
+        p.image_count,
+        p.hero_image_url,
+        p.image_urls_json,
+        p.badge,
+        p.sort_order,
+        p.is_active,
+        id
+      )
+      .run();
+  } catch (e) {
+    const msg = e && typeof e === "object" && "message" in e ? String(e.message) : "Update failed.";
+    const lower = msg.toLowerCase();
+    if (lower.includes("too big") || lower.includes("too large") || lower.includes("limit")) {
+      return jsonResponse(
+        {
+          error:
+            "Saved data is too large (often too many embedded photos). Remove some images or use smaller uploads / external image URLs."
+        },
+        400
+      );
+    }
+    return jsonResponse({ error: msg }, 400);
+  }
   const row = await r.db.prepare("SELECT * FROM products WHERE id = ?").bind(id).first();
-  return jsonResponse({ product: row });
+  const product = mapProductRow(row);
+  product.created_at = row.created_at;
+  product.updated_at = row.updated_at;
+  return jsonResponse({ product });
 }
 
 async function handleAdminDeleteProduct(request, env, id) {
@@ -710,7 +919,16 @@ export async function dispatchCatalogApi(request, env, pathname) {
     return handleAdminCreateProduct(request, env);
   }
 
-  let m = /^\/api\/admin\/products\/([^/]+)$/.exec(path);
+  let m = /^\/api\/admin\/products\/([^/]+)\/images$/.exec(path);
+  if (m) {
+    const id = decodeURIComponent(m[1]);
+    if (method === "POST") {
+      return handleAdminAppendProductImage(request, env, id);
+    }
+    return methodNotAllowed();
+  }
+
+  m = /^\/api\/admin\/products\/([^/]+)$/.exec(path);
   if (m) {
     const id = decodeURIComponent(m[1]);
     if (method === "GET") {

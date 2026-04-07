@@ -12,19 +12,23 @@
 <!-- ===== NAVIGATION ===== -->
 <nav>
   <div class="nav-inner">
+    <button type="button" class="nav-menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
     <a href="index.html" class="nav-logo">
       Dana's Estate Sales
       <span>Est. 1987 &bull; Wilmington, DE</span>
     </a>
-    <button class="nav-toggle" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
+    <a href="cart.html" class="nav-mobile-cart" aria-label="View shopping cart">
+      <img src="assets/icons/shopping-cart.svg" alt="" width="24" height="24" class="nav-mobile-cart-icon" />
+      <span class="nav-cart-badge" data-nav-cart-badge aria-hidden="true"></span>
+    </a>
     <ul class="nav-links">
       <li><a href="index.html" class="active">Home</a></li>
       <li><a href="store.html">Store</a></li>
       <li><a href="events.html">Events</a></li>
       <li><a href="contact.html">Contact</a></li>
-      <li><a href="cart.html">Cart (<span data-cart-count>0</span>)</a></li>
+      <li class="nav-item-cart"><a href="cart.html">Cart (<span data-cart-count>0</span>)</a></li>
     </ul>
   </div>
 </nav>
@@ -142,7 +146,7 @@
   <!-- ===== QUOTE BAND ===== -->
   <div class="intro-strip" style="background:var(--mahogany);">
     <p style="font-size:1.4rem;color:var(--gold-lt);">"Every object has a story. We are merely the custodians between chapters."</p>
-    <p style="font-size:.85rem;margin-top:.75rem;color:var(--warm-gray);font-style:normal;letter-spacing:.15em;font-family:'Josefin Sans',sans-serif;text-transform:uppercase;">— Dana Whitmore, Founder</p>
+    <p style="font-size:.85rem;margin-top:.75rem;color:var(--warm-gray);font-style:normal;letter-spacing:.15em;font-family:'Josefin Sans',sans-serif;text-transform:uppercase;">— Dana Herdman, Founder</p>
   </div>
 
 </div><!-- /.page -->
