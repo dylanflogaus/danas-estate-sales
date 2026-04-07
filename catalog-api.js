@@ -14,6 +14,24 @@ function noDbResponse() {
   return jsonResponse({ error: "Database is not configured (D1 binding missing)." }, 503);
 }
 
+/**
+ * Map common D1 failures to actionable API errors (avoids opaque Worker 500s).
+ */
+function catalogDbErrorResponse(err) {
+  const msg = err && typeof err.message === "string" ? err.message : String(err);
+  if (/no such column:\s*image_urls_json/i.test(msg)) {
+    return jsonResponse(
+      {
+        error:
+          "Database is missing the image_urls_json column. Run migration 003 on your remote D1 database.",
+        hint: "npx wrangler d1 execute danas-estate-sales --file=./migrations/003_product_image_urls.sql"
+      },
+      503
+    );
+  }
+  return jsonResponse({ error: "Could not load products." }, 500);
+}
+
 function methodNotAllowed() {
   return jsonResponse({ error: "Method not allowed." }, 405);
 }
@@ -206,19 +224,68 @@ function mapEventRow(row) {
 
 async function handlePublicProducts(env) {
   const db = env.DB;
+  // #region agent log
+  fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
+    body: JSON.stringify({
+      sessionId: "eb89e3",
+      runId: "pre-fix",
+      hypothesisId: "H1",
+      location: "catalog-api.js:226",
+      message: "handlePublicProducts entry",
+      data: { hasDbBinding: Boolean(db) },
+      timestamp: Date.now()
+    })
+  }).catch(() => {});
+  // #endregion
   if (!db) {
     return noDbResponse();
   }
-  const { results } = await db
-    .prepare(
-      `SELECT id, name, description, price_cents, category_slug, category_label,
-              image_count, hero_image_url, image_urls_json, badge, sort_order, is_active
-       FROM products WHERE is_active = 1
-       ORDER BY sort_order ASC, id ASC`
-    )
-    .all();
-  const products = (results || []).map(mapProductRow);
-  return jsonResponse({ products });
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT id, name, description, price_cents, category_slug, category_label,
+                image_count, hero_image_url, image_urls_json, badge, sort_order, is_active
+         FROM products WHERE is_active = 1
+         ORDER BY sort_order ASC, id ASC`
+      )
+      .all();
+    const products = (results || []).map(mapProductRow);
+    // #region agent log
+    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
+      body: JSON.stringify({
+        sessionId: "eb89e3",
+        runId: "pre-fix",
+        hypothesisId: "H2",
+        location: "catalog-api.js:240",
+        message: "products query succeeded",
+        data: { productCount: products.length },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion
+    return jsonResponse({ products });
+  } catch (err) {
+    // #region agent log
+    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
+      body: JSON.stringify({
+        sessionId: "eb89e3",
+        runId: "pre-fix",
+        hypothesisId: "H1",
+        location: "catalog-api.js:246",
+        message: "products query failed",
+        data: { errorMessage: err && typeof err.message === "string" ? err.message : String(err) },
+        timestamp: Date.now()
+      })
+    }).catch(() => {});
+    // #endregion
+    return catalogDbErrorResponse(err);
+  }
 }
 
 async function handlePublicEvents(env) {
@@ -226,16 +293,20 @@ async function handlePublicEvents(env) {
   if (!db) {
     return noDbResponse();
   }
-  const { results } = await db
-    .prepare(
-      `SELECT id, starts_on, month_key, date_month_label, date_day, date_year,
-              title, location, schedule_text, event_type, lead, extras_json, tags_json, sort_order, is_active
-       FROM events WHERE is_active = 1
-       ORDER BY starts_on ASC, sort_order ASC, id ASC`
-    )
-    .all();
-  const events = (results || []).map(mapEventRow);
-  return jsonResponse({ events });
+  try {
+    const { results } = await db
+      .prepare(
+        `SELECT id, starts_on, month_key, date_month_label, date_day, date_year,
+                title, location, schedule_text, event_type, lead, extras_json, tags_json, sort_order, is_active
+         FROM events WHERE is_active = 1
+         ORDER BY starts_on ASC, sort_order ASC, id ASC`
+      )
+      .all();
+    const events = (results || []).map(mapEventRow);
+    return jsonResponse({ events });
+  } catch {
+    return jsonResponse({ error: "Could not load events." }, 500);
+  }
 }
 
 async function handleAdminLogin(request, env) {

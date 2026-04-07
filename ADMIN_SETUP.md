@@ -17,7 +17,10 @@ Remote:
 ```bash
 npx wrangler d1 execute danas-estate-sales --file=./migrations/001_init.sql
 npx wrangler d1 execute danas-estate-sales --file=./migrations/002_seed.sql
+npx wrangler d1 execute danas-estate-sales --file=./migrations/003_product_image_urls.sql
 ```
+
+If the store returns an error about `image_urls_json`, the remote database was deployed before this migration — run `003_product_image_urls.sql` against production D1 (same commands as above).
 
 Local development database:
 
