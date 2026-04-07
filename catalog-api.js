@@ -224,21 +224,6 @@ function mapEventRow(row) {
 
 async function handlePublicProducts(env) {
   const db = env.DB;
-  // #region agent log
-  fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-    body: JSON.stringify({
-      sessionId: "eb89e3",
-      runId: "pre-fix",
-      hypothesisId: "H1",
-      location: "catalog-api.js:226",
-      message: "handlePublicProducts entry",
-      data: { hasDbBinding: Boolean(db) },
-      timestamp: Date.now()
-    })
-  }).catch(() => {});
-  // #endregion
   if (!db) {
     return noDbResponse();
   }
@@ -252,38 +237,8 @@ async function handlePublicProducts(env) {
       )
       .all();
     const products = (results || []).map(mapProductRow);
-    // #region agent log
-    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-      body: JSON.stringify({
-        sessionId: "eb89e3",
-        runId: "pre-fix",
-        hypothesisId: "H2",
-        location: "catalog-api.js:240",
-        message: "products query succeeded",
-        data: { productCount: products.length },
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
     return jsonResponse({ products });
   } catch (err) {
-    // #region agent log
-    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-      body: JSON.stringify({
-        sessionId: "eb89e3",
-        runId: "pre-fix",
-        hypothesisId: "H1",
-        location: "catalog-api.js:246",
-        message: "products query failed",
-        data: { errorMessage: err && typeof err.message === "string" ? err.message : String(err) },
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
     return catalogDbErrorResponse(err);
   }
 }

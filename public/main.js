@@ -278,25 +278,6 @@ async function bootstrapStorePage() {
     const res = await fetch("/api/products");
     const data = res.ok ? await res.json() : await res.json().catch(() => ({}));
     if (!res.ok) {
-      // #region agent log
-      fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-        body: JSON.stringify({
-          sessionId: "eb89e3",
-          runId: "pre-fix",
-          hypothesisId: "H3",
-          location: "public/main.js:281",
-          message: "store fetch non-ok response",
-          data: {
-            status: res.status,
-            hasErrorText: Boolean(data && typeof data.error === "string" && data.error.trim()),
-            hasHintText: Boolean(data && typeof data.hint === "string" && data.hint.trim())
-          },
-          timestamp: Date.now()
-        })
-      }).catch(() => {});
-      // #endregion
       let msg =
         data && typeof data.error === "string" && data.error.trim()
           ? data.error
@@ -307,21 +288,6 @@ async function bootstrapStorePage() {
       throw new Error(msg);
     }
     const products = Array.isArray(data.products) ? data.products : [];
-    // #region agent log
-    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-      body: JSON.stringify({
-        sessionId: "eb89e3",
-        runId: "pre-fix",
-        hypothesisId: "H4",
-        location: "public/main.js:312",
-        message: "store fetch success",
-        data: { productCount: products.length },
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
     renderProductCards(grid, products);
     const filterBar = document.querySelector("[data-store-filters]");
     if (filterBar) {
@@ -331,21 +297,6 @@ async function bootstrapStorePage() {
       status.textContent = "";
     }
   } catch (error) {
-    // #region agent log
-    fetch("http://127.0.0.1:7560/ingest/2bd0fe90-f37e-4218-9e8f-9b2515e16c62", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "eb89e3" },
-      body: JSON.stringify({
-        sessionId: "eb89e3",
-        runId: "pre-fix",
-        hypothesisId: "H5",
-        location: "public/main.js:322",
-        message: "bootstrapStorePage catch path",
-        data: { errorMessage: error instanceof Error ? error.message : String(error) },
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
     if (status) {
       status.textContent = error instanceof Error ? error.message : "Unable to load catalog.";
       status.classList.add("error");
